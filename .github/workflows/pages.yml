@@ -48,3 +48,6 @@ jobs:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 1800000   # Pages can be slow; the action's default (10 min) timed out twice
+          error_count: 20
