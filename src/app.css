@@ -1,0 +1,96 @@
+/* WYWO app layout — built on Bluebird UI tokens */
+
+.app-header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bb-surface) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bb-border); }
+.app-header .bb-container { display: flex; align-items: center; gap: 1rem; min-height: 60px; flex-wrap: wrap; padding-block: .5rem; }
+.brand { display: flex; align-items: center; gap: .65rem; margin-right: auto; }
+.brand__logo { width: 34px; height: 34px; border-radius: 10px; background: var(--bb-primary); color: var(--bb-on-primary); display: grid; place-items: center; }
+.brand__name { font-weight: 800; font-size: 17px; letter-spacing: -.02em; }
+.brand__sub { display: block; font-size: 12px; font-weight: 500; color: var(--bb-text-3); letter-spacing: 0; }
+.theme-label { font-size: 12px; font-weight: 600; color: var(--bb-text-3); min-width: 8.5em; }
+
+.hero { padding: 2rem 0 1rem; }
+.hero h1 { font-size: clamp(1.6rem, 3vw + 1rem, 2.4rem); font-weight: 800; }
+.hero p { margin: .5rem 0 0; color: var(--bb-text-2); max-width: 62ch; }
+
+.layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); padding-bottom: 3rem; align-items: start; }
+@media (min-width: 980px) { .layout { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } .preview-col { position: sticky; top: 76px; } }
+
+.stack { display: grid; gap: 1.25rem; }
+.grid-2 { display: grid; gap: .9rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .grid-2 { grid-template-columns: 1fr 1fr; } .span-2 { grid-column: 1 / -1; } }
+.section-title { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--bb-primary-text); }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+
+.ref-item { display: grid; gap: .5rem; padding: .85rem; border: 1px dashed var(--bb-border); border-radius: var(--bb-radius); background: var(--bb-surface-2); }
+.ref-item__top { display: flex; gap: .5rem; align-items: center; }
+.ref-item__top .bb-input { font-weight: 600; }
+.row-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.toolbar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.toolbar .spacer { margin-left: auto; }
+.pv-pane { padding: 1.25rem; background: var(--bb-surface-2); border-radius: 0 0 var(--bb-radius-lg) var(--bb-radius-lg); }
+
+/* ---- Modern note ---- */
+.note { background: var(--bb-surface); border: 1px solid var(--bb-border); border-top: 6px solid var(--bb-primary); border-radius: var(--bb-radius); box-shadow: var(--bb-shadow-2); padding: 1.5rem; display: grid; gap: 1.1rem; }
+.note__top { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+.note__kicker { font-size: 12px; font-weight: 800; letter-spacing: .14em; color: var(--bb-primary-text); text-transform: uppercase; }
+.note__title { font-size: 1.5rem; font-weight: 800; margin-top: .15rem; }
+.note__meta { font-size: 13px; color: var(--bb-text-2); text-align: right; }
+.note__caller { display: grid; gap: .15rem; padding: 1rem; background: var(--bb-primary-soft); border: 1px solid var(--bb-primary-line); border-radius: var(--bb-radius); }
+.note__caller .name { font-size: 1.25rem; font-weight: 800; }
+.note__caller .company { color: var(--bb-text-2); font-weight: 600; }
+.note__phone { font: 700 1.2rem var(--bb-mono); color: var(--bb-primary-text); text-decoration: none; margin-top: .25rem; }
+.note h3 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--bb-text-3); margin-bottom: .4rem; }
+.note p { margin: 0; white-space: pre-wrap; }
+.note ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.note li::marker { color: var(--bb-primary); }
+.ref { padding: .7rem .85rem; border: 1px solid var(--bb-border); border-radius: var(--bb-radius); }
+.ref + .ref { margin-top: .5rem; }
+.ref b { display: block; }
+.ref span, .ref a { font-size: 13.5px; display: block; overflow-wrap: anywhere; }
+.note__sig { font-size: 13px; color: var(--bb-text-2); border-top: 1px solid var(--bb-border); padding-top: .75rem; }
+.empty { color: var(--bb-text-3); font-style: italic; }
+
+/* ---- Classic slip (mirrors the paper pad) ---- */
+.slip { --ink: #1f3a2f; background: #fbf7fb; color: var(--ink); border: 3px double var(--ink); padding: 1rem 1.1rem 1.4rem; font-family: Arial, Helvetica, sans-serif; font-size: 13px; max-width: 520px; margin-inline: auto; box-shadow: var(--bb-shadow-2); }
+.slip .ln { display: flex; gap: .4rem; align-items: baseline; margin-top: .85rem; }
+.slip .ln > i { font-style: normal; font-size: 12px; letter-spacing: .03em; }
+.slip .ln > span { flex: 1; border-bottom: 1px solid var(--ink); min-height: 1.3em; padding: 0 .25rem; font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive; font-size: 15px; overflow-wrap: anywhere; }
+.slip .urgent { display: flex; justify-content: flex-end; align-items: center; gap: .4rem; font: 900 20px Georgia, serif; background: #d9d9d4; margin: -1rem -1.1rem .2rem 30%; padding: .35rem .6rem; }
+.slip .urgent b { width: 22px; height: 22px; border: 2px solid var(--ink); background: #fff; display: grid; place-items: center; font: 700 16px Arial; }
+.slip .banner { background: #d9d9d4; text-align: center; font: 900 clamp(20px, 5vw, 27px) Georgia, serif; padding: .3rem; margin: .8rem -1.1rem 0; }
+.slip .two { display: grid; grid-template-columns: 1.4fr 1fr; gap: .8rem; }
+.slip .opts { border: 1px dotted var(--ink); padding: .4rem .5rem; margin-top: .85rem; display: grid; gap: .3rem; align-content: start; font-size: 12px; }
+.slip .opts div { display: flex; gap: .4rem; align-items: center; }
+.slip .opts u { width: 14px; height: 14px; border: 1.5px solid var(--ink); display: inline-grid; place-items: center; text-decoration: none; font: 700 12px/1 Arial; flex: none; }
+.slip .msg-title { font: 900 20px Georgia, serif; text-decoration: underline; margin-top: .8rem; }
+.slip .lines { white-space: pre-wrap; line-height: 28px; min-height: 224px; background: repeating-linear-gradient(transparent 0 27px, var(--ink) 27px 28px); font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive; font-size: 14px; margin-top: .2rem; }
+.slip .sign { text-align: center; margin-top: .8rem; letter-spacing: .05em; }
+.slip .sign span { font-family: "Bradley Hand", "Segoe Print", cursive; font-size: 15px; display: block; border-bottom: 1px solid var(--ink); margin: 0 25% .1rem; min-height: 1.3em; }
+@media (max-width: 440px) { .slip .two { grid-template-columns: 1fr; } .slip .urgent { margin-left: 20%; } }
+
+/* ---- Text pane ---- */
+.textbox { width: 100%; min-height: 420px; font: 13.5px/1.55 var(--bb-mono); background: var(--bb-surface); color: var(--bb-text); border: 1px solid var(--bb-border); border-radius: var(--bb-radius); padding: 1rem; resize: vertical; white-space: pre; overflow: auto; }
+
+/* ---- Saved notes ---- */
+.saved { display: grid; gap: .5rem; }
+.saved__item { display: flex; gap: .75rem; align-items: center; padding: .65rem .8rem; border: 1px solid var(--bb-border); border-radius: var(--bb-radius); }
+.saved__item div { flex: 1; min-width: 0; }
+.saved__item b, .saved__item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved__item small { color: var(--bb-text-3); }
+
+footer { text-align: center; color: var(--bb-text-3); font-size: 13px; padding: 1.5rem 0 3rem; }
+
+/* ---- Print: only #printArea ---- */
+#printArea { display: none; }
+.pa-sheet { display: grid; gap: 0; }
+.pa-sheet.two { grid-template-columns: 1fr 1fr; gap: .4in; align-items: start; }
+@media print {
+  body > *:not(#printArea) { display: none !important; }
+  body { background: #fff; color: #000; }
+  #printArea { display: block !important; }
+  .note, .slip { box-shadow: none; max-width: none; break-inside: avoid; }
+  .note { border-color: #bbb; border-top-color: var(--bb-primary); }
+  .pa-sheet.pad .note, .pa-sheet.pad .slip { border-radius: 0; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

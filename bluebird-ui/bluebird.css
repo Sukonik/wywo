@@ -1,0 +1,191 @@
+/*!
+ * Bluebird UI — a small, themeable design system.
+ * 8 bird themes × light/dark. Zero dependencies.
+ *
+ * Usage:  <html data-theme="bluebird" data-mode="light">
+ * Themes: bluebird | parakeet | cardinal | goldfinch |
+ *         spoonbill | sparrow | robin | heron
+ * Mode:   light | dark   (omit data-mode to follow the OS)
+ */
+
+/* ---------- 1. Brand tokens: one colour pair per bird ---------- */
+:root,
+[data-theme="bluebird"]  { --bb-brand: #2563c9; --bb-brand-dk: #7aa7ff; --bb-on: #fff; --bb-on-dk: #0b1730; }
+[data-theme="parakeet"]  { --bb-brand: #23913f; --bb-brand-dk: #62d98a; --bb-on: #fff; --bb-on-dk: #08210f; }
+[data-theme="cardinal"]  { --bb-brand: #c4112f; --bb-brand-dk: #ff7288; --bb-on: #fff; --bb-on-dk: #2a0610; }
+[data-theme="goldfinch"] { --bb-brand: #f0b400; --bb-brand-dk: #ffd43b; --bb-on: #2b2000; --bb-on-dk: #2b2000; }
+[data-theme="spoonbill"] { --bb-brand: #d9488d; --bb-brand-dk: #ff93c4; --bb-on: #fff; --bb-on-dk: #2c0a1b; }
+[data-theme="sparrow"]   { --bb-brand: #865538; --bb-brand-dk: #d1a07a; --bb-on: #fff; --bb-on-dk: #24140a; }
+[data-theme="robin"]     { --bb-brand: #e0651a; --bb-brand-dk: #ffa05c; --bb-on: #fff; --bb-on-dk: #2b1100; }
+[data-theme="heron"]     { --bb-brand: #262b36; --bb-brand-dk: #cdd3e0; --bb-on: #fff; --bb-on-dk: #11141a; }
+
+/* ---------- 2. Semantic tokens (light) ---------- */
+:root {
+  color-scheme: light;
+  --bb-primary: var(--bb-brand);
+  --bb-on-primary: var(--bb-on);
+  --bb-primary-hover: color-mix(in srgb, var(--bb-primary) 86%, #000);
+  --bb-primary-soft: color-mix(in srgb, var(--bb-primary) 11%, var(--bb-surface));
+  --bb-primary-line: color-mix(in srgb, var(--bb-primary) 35%, var(--bb-surface));
+  --bb-primary-text: color-mix(in srgb, var(--bb-primary) 78%, #000);
+
+  --bb-bg: color-mix(in srgb, var(--bb-primary) 5%, #f6f7f9);
+  --bb-surface: #fff;
+  --bb-surface-2: color-mix(in srgb, var(--bb-primary) 4%, #f3f4f7);
+  --bb-border: #dcdfe6;
+  --bb-text: #14171f;
+  --bb-text-2: #4d5565;
+  --bb-text-3: #7b8394;
+  --bb-danger: #c4112f;
+  --bb-danger-soft: #fde8ec;
+
+  --bb-radius-sm: 6px;
+  --bb-radius: 10px;
+  --bb-radius-lg: 16px;
+  --bb-shadow-1: 0 1px 2px rgb(16 24 40 / .06), 0 1px 3px rgb(16 24 40 / .08);
+  --bb-shadow-2: 0 8px 24px rgb(16 24 40 / .10), 0 2px 6px rgb(16 24 40 / .06);
+  --bb-ring: 0 0 0 3px color-mix(in srgb, var(--bb-primary) 32%, transparent);
+  --bb-font: Inter, "Segoe UI Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bb-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+/* ---------- 3. Dark mode (explicit, or OS when data-mode is absent) ---------- */
+:root[data-mode="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode]) { color-scheme: dark; }
+}
+
+:root[data-mode="dark"] {
+  --bb-primary: var(--bb-brand-dk);
+  --bb-on-primary: var(--bb-on-dk);
+  --bb-primary-hover: color-mix(in srgb, var(--bb-primary) 88%, #fff);
+  --bb-primary-text: var(--bb-primary);
+  --bb-bg: color-mix(in srgb, var(--bb-primary) 5%, #0d0f14);
+  --bb-surface: color-mix(in srgb, var(--bb-primary) 3%, #161a22);
+  --bb-surface-2: color-mix(in srgb, var(--bb-primary) 5%, #1d222c);
+  --bb-border: #2b3240;
+  --bb-text: #eceff5;
+  --bb-text-2: #aab2c3;
+  --bb-text-3: #7f8899;
+  --bb-danger: #ff7288;
+  --bb-danger-soft: #3a1520;
+  --bb-shadow-1: 0 1px 2px rgb(0 0 0 / .4);
+  --bb-shadow-2: 0 10px 30px rgb(0 0 0 / .45);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode]) {
+    --bb-primary: var(--bb-brand-dk);
+    --bb-on-primary: var(--bb-on-dk);
+    --bb-primary-hover: color-mix(in srgb, var(--bb-primary) 88%, #fff);
+    --bb-primary-text: var(--bb-primary);
+    --bb-bg: color-mix(in srgb, var(--bb-primary) 5%, #0d0f14);
+    --bb-surface: color-mix(in srgb, var(--bb-primary) 3%, #161a22);
+    --bb-surface-2: color-mix(in srgb, var(--bb-primary) 5%, #1d222c);
+    --bb-border: #2b3240;
+    --bb-text: #eceff5;
+    --bb-text-2: #aab2c3;
+    --bb-text-3: #7f8899;
+    --bb-danger: #ff7288;
+    --bb-danger-soft: #3a1520;
+    --bb-shadow-1: 0 1px 2px rgb(0 0 0 / .4);
+    --bb-shadow-2: 0 10px 30px rgb(0 0 0 / .45);
+  }
+}
+
+/* ---------- 4. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bb-bg); color: var(--bb-text);
+  font: 15px/1.5 var(--bb-font); -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
+}
+h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
+a { color: var(--bb-primary-text); }
+:focus-visible { outline: none; box-shadow: var(--bb-ring); border-radius: var(--bb-radius-sm); }
+[hidden] { display: none !important; }
+
+/* ---------- 5. Components ---------- */
+.bb-container { width: min(1280px, 100% - 2rem); margin-inline: auto; }
+
+.bb-card {
+  background: var(--bb-surface); border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius-lg); box-shadow: var(--bb-shadow-1);
+}
+.bb-card__head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--bb-border); display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.bb-card__body { padding: 1.25rem; }
+
+/* buttons */
+.bb-btn {
+  --_bg: var(--bb-surface); --_fg: var(--bb-text); --_bd: var(--bb-border);
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-height: 38px; padding: .45rem .9rem; font: 600 14px/1 var(--bb-font);
+  color: var(--_fg); background: var(--_bg); border: 1px solid var(--_bd);
+  border-radius: var(--bb-radius); cursor: pointer; text-decoration: none;
+  transition: background .15s, border-color .15s, transform .05s;
+}
+.bb-btn:hover { background: var(--bb-surface-2); border-color: var(--bb-primary-line); }
+.bb-btn:active { transform: translateY(1px); }
+.bb-btn--primary { --_bg: var(--bb-primary); --_fg: var(--bb-on-primary); --_bd: transparent; }
+.bb-btn--primary:hover { background: var(--bb-primary-hover); border-color: transparent; }
+.bb-btn--ghost { --_bg: transparent; --_bd: transparent; color: var(--bb-text-2); }
+.bb-btn--danger { color: var(--bb-danger); }
+.bb-btn--sm { min-height: 30px; padding: .3rem .6rem; font-size: 13px; }
+.bb-btn--icon { width: 38px; padding: 0; }
+.bb-btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+/* fields */
+.bb-field { display: grid; gap: .35rem; }
+.bb-label { font-size: 13px; font-weight: 600; color: var(--bb-text-2); }
+.bb-hint { font-size: 12px; color: var(--bb-text-3); }
+.bb-input, .bb-textarea, .bb-select {
+  width: 100%; min-height: 40px; padding: .5rem .7rem;
+  font: inherit; color: var(--bb-text); background: var(--bb-surface);
+  border: 1px solid var(--bb-border); border-radius: var(--bb-radius);
+  transition: border-color .15s, box-shadow .15s;
+}
+.bb-textarea { min-height: 88px; resize: vertical; }
+.bb-input::placeholder, .bb-textarea::placeholder { color: var(--bb-text-3); }
+.bb-input:hover, .bb-textarea:hover, .bb-select:hover { border-color: var(--bb-primary-line); }
+.bb-input:focus, .bb-textarea:focus, .bb-select:focus { outline: none; border-color: var(--bb-primary); box-shadow: var(--bb-ring); }
+
+/* checkbox / switch chips */
+.bb-check {
+  display: inline-flex; align-items: center; gap: .5rem; padding: .4rem .7rem;
+  border: 1px solid var(--bb-border); border-radius: 999px; cursor: pointer;
+  font-size: 13.5px; font-weight: 500; user-select: none; background: var(--bb-surface);
+  transition: background .15s, border-color .15s;
+}
+.bb-check:hover { border-color: var(--bb-primary-line); }
+.bb-check input { accent-color: var(--bb-primary); width: 16px; height: 16px; margin: 0; }
+.bb-check:has(input:checked) { background: var(--bb-primary-soft); border-color: var(--bb-primary-line); color: var(--bb-primary-text); }
+.bb-check:has(input:focus-visible) { box-shadow: var(--bb-ring); }
+
+/* tabs (segmented) */
+.bb-tabs { display: inline-flex; padding: 3px; gap: 2px; background: var(--bb-surface-2); border: 1px solid var(--bb-border); border-radius: var(--bb-radius); }
+.bb-tab { border: 0; background: transparent; color: var(--bb-text-2); font: 600 13px/1 var(--bb-font); padding: .5rem .85rem; border-radius: calc(var(--bb-radius) - 3px); cursor: pointer; }
+.bb-tab[aria-selected="true"] { background: var(--bb-surface); color: var(--bb-primary-text); box-shadow: var(--bb-shadow-1); }
+
+/* badges */
+.bb-badge { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .55rem; font-size: 12px; font-weight: 700; letter-spacing: .02em; border-radius: 999px; background: var(--bb-primary-soft); color: var(--bb-primary-text); border: 1px solid var(--bb-primary-line); }
+.bb-badge--danger { background: var(--bb-danger-soft); color: var(--bb-danger); border-color: color-mix(in srgb, var(--bb-danger) 40%, transparent); }
+
+/* theme swatches */
+.bb-swatches { display: flex; gap: .4rem; flex-wrap: wrap; }
+.bb-swatch {
+  --c: var(--bb-brand); width: 26px; height: 26px; border-radius: 50%; padding: 0; cursor: pointer;
+  background: var(--c); border: 2px solid var(--bb-surface); box-shadow: 0 0 0 1px var(--bb-border);
+  transition: transform .1s, box-shadow .15s;
+}
+.bb-swatch:hover { transform: scale(1.12); }
+.bb-swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bb-text); }
+
+/* toast */
+.bb-toast {
+  position: fixed; left: 50%; bottom: 1.25rem; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  background: var(--bb-text); color: var(--bb-bg); padding: .6rem 1rem; border-radius: var(--bb-radius);
+  font-weight: 600; font-size: 14px; box-shadow: var(--bb-shadow-2); transition: opacity .2s, transform .2s; z-index: 50;
+}
+.bb-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
