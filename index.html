@@ -143,8 +143,18 @@
     <button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="seedClose" aria-label="Close">✕</button>
   </div>
   <div class="seed__body" id="seedStep1">
+    <p class="seed__intro">🔎 Bird Seed <b>looks up real information</b> about this call (the company’s own website, public records, your saved notes) and then <b>asks you</b> before anything goes in the note.</p>
     <label class="seed-all"><input type="checkbox" id="seedAll" checked> <span>🌰 Select all seeds</span></label>
     <div class="seed-grid" id="seedGrid"></div>
+    <details class="more" id="engineBox">
+      <summary>🛠 Look-up engine <em id="engineName">Built-in reader (free)</em></summary>
+      <div class="more__in">
+        <label class="f"><span>Engine <em>how websites get read</em></span><select class="mini wide" id="engineSel"></select></label>
+        <label class="f" id="keyRow" hidden><span id="keyLbl">API key</span><input id="engineKey" type="password" placeholder="Paste your key" autocomplete="off"></label>
+        <label class="f" id="urlRow" hidden><span>Server URL <em>self-hosted; leave blank for Crawl4AI cloud</em></span><input id="engineUrl" placeholder="http://localhost:11235"></label>
+        <p class="bb-hint" id="engineNote"></p>
+      </div>
+    </details>
     <label class="f"><span>City for local departments <em>Long Beach, NY has a verified directory</em></span><input id="city" placeholder="Long Beach, NY"></label>
   </div>
   <div class="seed__body" id="seedStep2" hidden><div id="seedResults"></div></div>
@@ -170,7 +180,7 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.6.0 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.7.0 · build <span id="build">dev</span></footer>
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 

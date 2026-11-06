@@ -469,7 +469,30 @@
   var dlg = $('#seedDlg'), seedRes = [], cityEl = $('#city');
   cityEl.value = ui.city == null ? 'Long Beach, NY' : ui.city;
   cityEl.addEventListener('input', function () { ui.city = cityEl.value; store(KEY_UI, ui); });
-  var picked = ui.seeds || BirdSeed.SEEDS.map(function (x) { return x.id; });
+  /* look-up engine (website reader) — keys stay in this browser only */
+  var KEYS = load('wywo.keys', {}), engId = ui.engine || 'reader';
+  var ENOTE = {
+    reader: 'Free, no key. Reads public web pages through the Jina Reader service (r.jina.ai). Only the company website address is sent.',
+    firecrawl: 'Firecrawl (firecrawl.dev) reads the site using your API key. The key stays in this browser and is sent only to api.firecrawl.dev. Beta: needs your key to try.',
+    crawl4ai: 'Crawl4AI (crawl4ai.com). Use their cloud with your key, or your own self-hosted server URL (it must allow browser requests). Beta: needs your key or server to try.',
+    scrapegraph: 'ScrapeGraphAI (scrapegraphai.com) uses AI to pull name, phones, emails and address from the site with your API key. The key stays in this browser and is sent only to scrapegraphai.com. Beta: needs your key to try.'
+  };
+  var esel = $('#engineSel');
+  BirdSeed.ENGINES.forEach(function (e) { var o = document.createElement('option'); o.value = e.id; o.textContent = e.name + (e.needs ? ' (your key)' : ''); esel.appendChild(o); });
+  function showEngine() {
+    var e = BirdSeed.ENGINES.filter(function (x) { return x.id === esel.value; })[0] || BirdSeed.ENGINES[0];
+    $('#engineName').textContent = e.name.replace(' (free, no key)', ' (free)');
+    $('#keyRow').hidden = !e.needs; $('#urlRow').hidden = !e.url;
+    $('#keyLbl').textContent = e.name + ' API key' + (e.id === 'crawl4ai' ? ' / token' : '');
+    $('#engineKey').value = KEYS[e.id] || ''; $('#engineUrl').value = KEYS.c4url || '';
+    $('#engineNote').textContent = ENOTE[e.id];
+  }
+  esel.value = engId; showEngine();
+  esel.addEventListener('change', function () { ui.engine = esel.value; store(KEY_UI, ui); showEngine(); });
+  $('#engineKey').addEventListener('input', function () { KEYS[esel.value] = this.value.trim(); store('wywo.keys', KEYS); });
+  $('#engineUrl').addEventListener('input', function () { KEYS.c4url = this.value.trim(); store('wywo.keys', KEYS); });
+  var allIds = BirdSeed.SEEDS.map(function (x) { return x.id; });
+  var picked = (ui.seeds || []).filter(function (id) { return allIds.indexOf(id) > -1; }); if (!picked.length) picked = allIds;
   var grid = $('#seedGrid');
   BirdSeed.SEEDS.forEach(function (sd) {
     var l = document.createElement('label'); l.className = 'seed-card';
@@ -485,7 +508,7 @@
   function seedStep(n) {
     $('#seedStep1').hidden = n !== 1; $('#seedStep2').hidden = n !== 2;
     $('#scatterBtn').hidden = n !== 1; $('#seedAdd').hidden = n !== 2; $('#seedBack').hidden = n !== 2;
-    $('#seedSub').textContent = n === 1 ? 'Pick the seeds to scatter. We’ll look at your note and suggest details — you choose what goes in.' : 'Tick what you want in the note. Guesses are never ticked for you.';
+    $('#seedSub').textContent = n === 1 ? 'Pick the seeds to scatter. Bird Seed looks things up and asks before adding anything.' : 'Here’s what we found. Tick what you want added to the note. Guesses are never ticked for you.';
   }
   function openSeed() { readForm(); seedStep(1); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
   function closeSeed() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
@@ -497,8 +520,8 @@
   var TRUST = { verified: ['✓ From a source', 'tr tr--v'], derived: ['Worked out from your note', 'tr tr--d'], guess: ['Guess — confirm first', 'tr tr--g'] };
   function sgRow(x, i) {
     var t = x.apply.kind === 'link' ? ['Opens in a new tab', 'tr tr--d'] : (TRUST[x.trust] || TRUST.derived);
-    var lead = x.apply.kind === 'link' ? '<a class="bb-btn bb-btn--sm" href="' + esc(x.apply.url) + '" target="_blank" rel="noopener noreferrer">Open ↗</a>' : '<input type="checkbox" data-i="' + i + '"' + (x.checked ? ' checked' : '') + ' aria-label="Add: ' + esc(x.label) + '">';
-    return '<label class="sg">' + lead + '<span class="sg__t"><b>' + esc(x.label) + '</b><span class="sg__v">' + esc(x.value) + '</span><small><span class="' + t[1] + '">' + t[0] + '</span>' + (x.source ? ' · ' + esc(x.source) : '') + '</small></span></label>';
+    var lead = x.apply.kind === 'link' ? '<a class="bb-btn bb-btn--sm" href="' + esc(x.apply.url) + '" target="_blank" rel="noopener noreferrer">Open ↗</a>' : '<span class="sg__lead"><input type="checkbox" data-i="' + i + '"' + (x.checked ? ' checked' : '') + ' aria-label="Add to note: ' + esc(x.label) + '"><span class="sg__add">Add?</span></span>';
+    return '<label class="sg">' + lead + '<span class="sg__t"><b>' + esc(x.label) + '</b><span class="sg__v">' + esc(x.value) + '</span><small><span class="' + t[1] + '">' + t[0] + '</span>' + (x.source ? ' · ' + esc(x.source) : '') + (x.srcUrl ? ' · <a href="' + esc(x.srcUrl) + '" target="_blank" rel="noopener noreferrer">see source ↗</a>' : '') + '</small></span></label>';
   }
   function renderSeedResults() {
     var n = 0, html = '';
@@ -522,7 +545,7 @@
     var ids = ui.seeds.slice(); if (!ids.length) return;
     seedRes = ids.map(function (id) { return { seed: BirdSeed.SEEDS.filter(function (x) { return x.id === id; })[0], pending: true, suggestions: [] }; });
     window.__seedAll = []; seedStep(2); renderSeedResults();
-    BirdSeed.scatter(ids, { state: JSON.parse(JSON.stringify(state)), saved: saved, city: cityEl.value }, function (r) {
+    BirdSeed.scatter(ids, { state: JSON.parse(JSON.stringify(state)), saved: saved, city: cityEl.value, engine: { id: esel.value, keys: { firecrawl: KEYS.firecrawl, crawl4ai: KEYS.crawl4ai, scrapegraph: KEYS.scrapegraph }, c4url: KEYS.c4url } }, function (r) {
       var slot = seedRes.filter(function (x) { return x.seed.id === r.seed.id; })[0];
       slot.pending = false; slot.message = r.message; slot.suggestions = r.suggestions; slot.all = window.__seedAll;
       r.suggestions.forEach(function (x) { window.__seedAll.push(x); });

@@ -222,3 +222,12 @@ dialog.confirm { width: min(460px, calc(100% - 1.25rem)); }
 .bb-btn--solid-danger:hover { background: color-mix(in srgb, var(--bb-danger) 88%, #000); border-color: transparent; }
 .sure { background: var(--bb-danger-soft); color: var(--bb-danger); }
 .sure input { accent-color: var(--bb-danger); }
+
+/* ---------- Bird Seed 2.0 ---------- */
+.seed__intro { margin: 0; color: var(--bb-text-2); line-height: 1.5; }
+.mini.wide { width: 100%; font-size: 15px; padding: .6rem .7rem; }
+#engineBox { border-top: 0; padding-top: 0; background: var(--bb-surface-2); border-radius: 14px; padding: .7rem .9rem; }
+#engineKey, #engineUrl { width: 100%; font: 500 1rem var(--bb-font); color: var(--bb-text); background: var(--bb-surface); border: 1.5px solid var(--bb-border); border-radius: 12px; padding: .65rem .8rem; }
+.sg__add { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--bb-primary-text); }
+.sg__lead { display: grid; justify-items: center; gap: .25rem; flex: none; }
+.sg small a { color: var(--bb-primary-text); font-weight: 600; }
