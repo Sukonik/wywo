@@ -27,7 +27,7 @@ jobs:
       - name: Assemble site and stamp build
         run: |
           mkdir _site
-          cp -r index.html bluebird-ui src assets favicon.ico favicon.svg apple-touch-icon.png site.webmanifest _site/
+          cp -r index.html bluebird-ui src assets favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png android-chrome-192x192.png android-chrome-512x512.png site.webmanifest _site/
           sed -i "s|<span id=\"build\">dev</span>|<span id=\"build\">${GITHUB_SHA::7}</span>|" _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

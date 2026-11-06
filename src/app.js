@@ -67,8 +67,6 @@
     $('#themeLabel').textContent = t.name;
     Array.prototype.forEach.call(document.querySelectorAll('.bb-swatch'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === t.id)); });
     ui.theme = t.id; store(KEY_UI, ui);
-    $('#favSvg').href = 'assets/icons/' + t.id + '/favicon.svg';
-    $('#appleIcon').href = 'assets/icons/' + t.id + '/apple-touch-icon.png';
     syncChrome();
   }
   function syncChrome() {
@@ -95,6 +93,29 @@
     ui.mode = el.dataset.mode; store(KEY_UI, ui); syncChrome();
   });
   applyTheme(document.documentElement.dataset.theme);
+
+  /* App icon (favicon + touch icon) — six tree icons, Cedar by default */
+  var TREES = [
+    { id: 'cedar', name: 'Cedar', tip: 'Blue-green cedar & warm wood grain (default)' }, { id: 'pine', name: 'Pine', tip: 'Evergreen needles & amber resin' },
+    { id: 'maple', name: 'Maple', tip: 'Crimson & burnt-orange leaves' }, { id: 'hazelnut', name: 'Hazelnut', tip: 'Hazel brown, cream & olive' },
+    { id: 'linden', name: 'Linden', tip: 'Luminous green heart-leaf' }, { id: 'beech', name: 'Beech', tip: 'Copper leaves & silver bark' }
+  ];
+  function applyIcon(id) {
+    var t = TREES.filter(function (x) { return x.id === id; })[0] || TREES[0], d = 'assets/icons/' + t.id + '/';
+    var dflt = t.id === 'cedar';
+    $('#fav32').href = dflt ? 'favicon-32x32.png' : d + 'favicon-32.png';
+    $('#fav16').href = dflt ? 'favicon-16x16.png' : d + 'favicon-16.png';
+    $('#appleIcon').href = dflt ? 'apple-touch-icon.png' : d + 'apple-touch-icon.png';
+    Array.prototype.forEach.call(document.querySelectorAll('.icon-btn'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === t.id)); });
+    ui.icon = t.id; store(KEY_UI, ui);
+  }
+  TREES.forEach(function (t) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'icon-btn'; b.dataset.id = t.id; b.title = t.name + ' — ' + t.tip;
+    b.innerHTML = '<img src="assets/icons/' + t.id + '/favicon-48.png" alt="" width="44" height="44">' + esc(t.name);
+    b.addEventListener('click', function () { applyIcon(t.id); toast(t.name + ' icon selected'); });
+    $('#icons').appendChild(b);
+  });
+  applyIcon(ui.icon || 'cedar');
   var sizeSel = $('#sizeSel'); sizeSel.value = document.documentElement.dataset.size || 'l';
   sizeSel.addEventListener('change', function () { document.documentElement.dataset.size = sizeSel.value; ui.size = sizeSel.value; store(KEY_UI, ui); });
 

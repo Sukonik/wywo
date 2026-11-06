@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icons/bluebird/mark.svg" alt="WYWO bluebird logo" width="120">
+<img src="assets/logo/wywo-mark-bluebird.svg" alt="WYWO bluebird logo" width="120">
 
 # WYWO — While You Were Out
 
@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.4.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -47,7 +47,8 @@ Every emoji in the app and this README means the same thing everywhere.
 | 🗂 | Saved notes drawer | Header |
 | ✨ | Organize — sort what you typed into fields | Quick type |
 | 🎨 | Bluebird UI themes | Theme menu |
-| 🪶 | The WYWO bluebird logo & themed icons | Header, tab, home screen |
+| 🪶 | The WYWO bluebird logo | Header, footer, printed note |
+| 🌲 | App icon (Cedar, Pine, Maple, Hazelnut, Linden, Beech) | Tab, home screen, Theme → App icon |
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
 | 🚨 | Urgent call | Urgent flag (red badge) |
@@ -167,34 +168,30 @@ Trust labels on every suggestion: **✓ From a source** · **Worked out from you
 
 **Long Beach directory:** [`src/directory.js`](src/directory.js) holds each department’s phone, room and link, copied from the department’s own page on longbeachny.gov (checked 2026-11-06). City numbers change, so re-check before relying on them. Add or edit departments there.
 
-## 🪶 Icons 2.0
+## 🌲 Favicons 2.0 & logo
 
-The WYWO bluebird (a pen-nib wing and paper-fold tail) is one recolourable mark that takes on every Bluebird UI theme.
+The WYWO bluebird (pen-nib wing, paper-fold tail) is the brand mark. It appears in the header, footer and printed note, recoloured by the colour theme.
+
+Six botanical app icons wrap the same black bluebird: **Cedar** (default), **Pine**, **Maple**, **Hazelnut**, **Linden**, **Beech**.
 
 | Where | What |
 |---|---|
-| Header, footer, printed note | Inline logo in the current theme colour |
-| Browser tab | `assets/icons/<theme>/favicon.svg` — switches with your theme, lighter in dark browser tabs |
-| Safari / older browsers | `favicon-16.png`, `favicon-32.png`, root `favicon.ico` (Night-Heron uses a dark tile so it never vanishes on a dark tab) |
-| Phone home screen | `apple-touch-icon.png` and `icon-192/512.png` per theme, plus `site.webmanifest` |
-| Browser toolbar colour | `theme-color` follows theme + light/dark |
+| Browser tab | `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` (Cedar by default) |
+| Phone home screen | `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest` |
+| Pick another icon | **Theme menu → App icon**. It changes the tab and home-screen icon and is remembered on this device |
+| All six, every size | [`assets/icons/<tree>/`](assets/icons/) (16 · 32 · 48 · `.ico` · 180 touch · 192 · 512) |
 
 👀 **See them all:** [`assets/icons/index.html`](assets/icons/index.html) (live: https://sukonik.github.io/wywo/assets/icons/)
 
-**Rebuild** after changing the logo (source SVGs live in [`assets/logo/`](assets/logo/)):
-
-```bash
-node tools/build-icons.js
-```
-
-Logo guidelines (from the starter kit): keep one eye-width of clear space; use the simplified favicon below 48 px; no outlines, gradients or shadows on small sizes.
+The icons already include their own rounded styling, so don’t add borders or shadows. iOS applies its own mask: test on a device before an App Store release (the 1024 px Cedar source is `assets/icons/cedar/app-icon-1024.png`). The logo’s source SVGs are in [`assets/logo/`](assets/logo/).
 
 ## 🏷️ Versions & updates
 
-Current version: **0.4.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+Current version: **0.5.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
 
 | Version | Highlights |
 |---|---|
+| **0.5.0** | 🌲 **Favicons 2.0**: six botanical tree icons (Cedar default), choose yours in Theme → App icon |
 | **0.4.0** | 🪶 **Icons 2.0**: the WYWO bluebird logo, themed favicons / app icons for all 8 birds, installable web-app manifest |
 | **0.3.1** | 🧪 New sample call (Phil Gordon, SWA Development Corp); Quick type understands “wants to speak to…”, preferences like “after 3pm”, and bare websites |
 | **0.3.0** | 🐦 **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls — you tick what goes in your note |
@@ -214,9 +211,8 @@ index.html            app shell
 bluebird-ui/          design system (tokens, 8 themes, components)
 src/app.css           app layout + print styles
 assets/logo/          logo source SVGs (mark, favicon, app icon)
-assets/icons/         generated themed icons for the 8 themes (+ index.html board)
-tools/build-icons.js  regenerates the icons from assets/logo
-favicon.ico, favicon.svg, apple-touch-icon.png, site.webmanifest   site-wide defaults
+assets/icons/         six tree icons × every size (+ index.html board)
+favicon*.png / .ico, apple-touch-icon.png, android-chrome-*.png, site.webmanifest   Cedar defaults
 src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
 src/birdseed.js       Bird Seed engine (8 seeds)
 src/directory.js      verified Long Beach, NY department directory
