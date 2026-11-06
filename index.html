@@ -45,6 +45,7 @@
       <textarea id="quick" rows="3" aria-label="Jot it down" placeholder="Jot the call down in your own words…&#10;e.g. Cian O'Brien, OCS Development Group, 646-331-2205. Transferred by the Building Department, asking about zoning, permits and mercantile license."></textarea>
       <div class="quick__bar">
         <button class="bb-btn bb-btn--primary" type="button" id="quickBtn">✨ Organize</button>
+        <button class="bb-btn bb-btn--seed" type="button" id="birdBtn" title="Suggest details to add to this note">🐦 Bird Seed</button>
         <span class="bb-hint">⌘/Ctrl + Enter · anything we can’t sort goes into the note</span>
         <span class="quick__sp"></span>
         <button class="bb-btn bb-btn--sm bb-btn--ghost" type="button" id="exampleBtn">Example</button>
@@ -85,14 +86,6 @@
         </div>
       </details>
 
-      <details class="more" id="lookupBox">
-        <summary>🔎 Look up missing details <em>one or two clicks</em></summary>
-        <div class="more__in">
-          <label class="f"><span>City / municipality <em>for agency lookups</em></span><input id="city" placeholder="Long Beach, NY"></label>
-          <div class="chips" id="lookups"></div>
-          <p class="bb-hint" id="lookupMsg"></p>
-        </div>
-      </details>
     </section>
   </form>
 
@@ -120,6 +113,26 @@
   </section>
 </main>
 
+<!-- 🐦 Bird Seed -->
+<dialog class="seed" id="seedDlg" aria-labelledby="seedTitle">
+  <div class="seed__head">
+    <div><h2 id="seedTitle">🐦 Bird Seed</h2><p class="bb-hint" id="seedSub">Pick the seeds to scatter. We’ll look at your note and suggest details — you choose what goes in.</p></div>
+    <button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="seedClose" aria-label="Close">✕</button>
+  </div>
+  <div class="seed__body" id="seedStep1">
+    <label class="seed-all"><input type="checkbox" id="seedAll" checked> <span>🌰 Select all seeds</span></label>
+    <div class="seed-grid" id="seedGrid"></div>
+    <label class="f"><span>City for local departments <em>Long Beach, NY has a verified directory</em></span><input id="city" placeholder="Long Beach, NY"></label>
+  </div>
+  <div class="seed__body" id="seedStep2" hidden><div id="seedResults"></div></div>
+  <div class="seed__foot">
+    <button class="bb-btn" type="button" id="seedBack" hidden>‹ Back</button>
+    <span class="quick__sp"></span>
+    <button class="bb-btn bb-btn--primary" type="button" id="scatterBtn">🌱 Scatter seeds</button>
+    <button class="bb-btn bb-btn--primary" type="button" id="seedAdd" hidden>Add to my note</button>
+  </div>
+</dialog>
+
 <!-- Saved notes drawer -->
 <aside class="drawer" id="drawer" aria-label="Saved notes" hidden>
   <div class="drawer__head"><h2>Saved notes</h2><button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="drawerClose" aria-label="Close">✕</button></div>
@@ -127,10 +140,12 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer>WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.2.0 · build <span id="build">dev</span></footer>
+<footer>WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.3.0 · build <span id="build">dev</span></footer>
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 
+<script src="src/directory.js"></script>
+<script src="src/birdseed.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

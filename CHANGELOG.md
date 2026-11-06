@@ -2,6 +2,15 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.3.0] — 2026-11-06 🐦
+### Added
+- 🐦 **Bird Seed**: pick any or all of 8 seeds and review suggested details before they go into the note
+  - 🌻 Sunflower (full name) · 🌾 Millet (phone check) · ⚫ Nyjer (email) · 🌼 Safflower (websites) · 🌿 Hemp (LinkedIn) · 🥜 Peanut (city departments) · 🌽 Cracked corn (company profile) · 🌱 Thistle (past calls)
+- 🏛 Verified Long Beach, NY department directory (phones from longbeachny.gov, checked 2026-11-06)
+- Trust labels on every suggestion; guesses are never pre-ticked
+### Removed
+- The old Look-up panel (replaced by Bird Seed)
+
 ## [0.2.0] — 2026-11-06 ✨
 ### Changed
 - 🧹 Redesigned as a calm, Keep × Apple Notes editor: one big quick-type box, soft filled fields, optional details tucked away

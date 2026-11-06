@@ -131,6 +131,44 @@ body { background: var(--bb-bg); }
 /* ----- Text panes ----- */
 .textbox { width: 100%; min-height: 440px; font: calc(14px * var(--fs)) / 1.6 var(--bb-mono); background: var(--bb-surface); color: var(--bb-text); border: 1px solid var(--bb-border); border-radius: 18px; padding: 1.1rem; resize: vertical; white-space: pre; overflow: auto; box-shadow: var(--bb-shadow-1); }
 
+/* ---------- 🐦 Bird Seed ---------- */
+.bb-btn--seed { --_bg: color-mix(in srgb, var(--bb-primary) 14%, var(--bb-surface)); --_fg: var(--bb-primary-text); --_bd: var(--bb-primary-line); }
+dialog.seed { border: 0; padding: 0; border-radius: 26px; width: min(720px, calc(100% - 1.25rem)); max-height: min(88vh, 860px); background: var(--bb-surface); color: var(--bb-text); box-shadow: var(--bb-shadow-2); overflow: hidden; }
+dialog.seed[open] { display: flex; flex-direction: column; }
+dialog.seed::backdrop { background: rgb(8 12 24 / .45); backdrop-filter: blur(3px); }
+.seed__head { display: flex; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.25rem .5rem; }
+.seed__head h2 { font-size: 1.4rem; }
+.seed__head p { margin: .25rem 0 0; }
+.seed__body { padding: .5rem 1.25rem 1rem; overflow: auto; display: grid; gap: 1rem; align-content: start; }
+.seed__foot { display: flex; align-items: center; gap: .6rem; padding: .9rem 1.25rem; border-top: 1px solid var(--bb-border); background: var(--bb-surface-2); }
+.seed-all { display: inline-flex; align-items: center; gap: .55rem; font-weight: 700; cursor: pointer; justify-self: start; padding: .45rem .9rem; border-radius: 999px; background: var(--bb-primary-soft); color: var(--bb-primary-text); }
+.seed-all input, .seed-card input, .sg input { accent-color: var(--bb-primary); width: 18px; height: 18px; margin: 0; flex: none; }
+.seed-grid { display: grid; gap: .6rem; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .seed-grid { grid-template-columns: 1fr 1fr; } }
+.seed-card { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem .9rem; border-radius: 16px; background: var(--bb-surface-2); border: 1.5px solid transparent; cursor: pointer; transition: background .15s, border-color .15s; }
+.seed-card:hover { border-color: var(--bb-primary-line); }
+.seed-card:has(input:checked) { background: var(--bb-primary-soft); border-color: var(--bb-primary-line); }
+.seed-card:has(input:focus-visible) { box-shadow: var(--bb-ring); }
+.seed-card__e { font-size: 1.7rem; line-height: 1.1; }
+.seed-card b { font-size: 1rem; }
+.seed-card em { font-style: normal; font-weight: 600; color: var(--bb-primary-text); font-size: .85rem; margin-left: .25rem; }
+.seed-card small { display: block; color: var(--bb-text-2); font-size: .85rem; line-height: 1.35; margin-top: .15rem; }
+.sgrp h3 { font-size: 1rem; margin: 0 0 .4rem; }
+.sgrp h3 em { font-style: normal; font-weight: 600; color: var(--bb-text-3); font-size: .85rem; margin-left: .3rem; }
+.sgrp .bb-hint { margin: 0 0 .4rem; }
+.sg { display: flex; gap: .75rem; align-items: flex-start; padding: .7rem .85rem; border-radius: 14px; background: var(--bb-surface-2); margin-bottom: .45rem; cursor: pointer; }
+.sg:has(input:checked) { background: var(--bb-primary-soft); }
+.sg a.bb-btn { flex: none; }
+.sg__t { display: grid; gap: .1rem; min-width: 0; }
+.sg__v { overflow-wrap: anywhere; color: var(--bb-text-2); }
+.sg small { color: var(--bb-text-3); font-size: .78rem; }
+.tr { font-weight: 700; }
+.tr--v { color: var(--bb-primary-text); }
+.tr--d { color: var(--bb-text-2); }
+.tr--g { color: #9a6a00; }
+:root[data-mode="dark"] .tr--g { color: #ffd23f; }
+@media (prefers-color-scheme: dark) { :root:not([data-mode]) .tr--g { color: #ffd23f; } }
+
 /* ---------- Saved notes drawer (Keep-style cards) ---------- */
 .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: min(420px, 100%); background: var(--bb-bg); z-index: 40; box-shadow: var(--bb-shadow-2); padding: 1rem; overflow: auto; border-left: 1px solid var(--bb-border); }
 .drawer__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
