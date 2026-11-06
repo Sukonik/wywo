@@ -7,7 +7,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.3.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.1-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -56,7 +56,7 @@ Every emoji in the app and this README means the same thing everywhere.
 
 | | |
 |---|---|
-| ⚡ **Quick type** | Type or paste the call in plain words — *"Cian O'Brien from OCS Development Group 646-331-2205, transferred by the Building Department, re: zoning, permits, mercantile license"* — and the form fills itself. **Nothing is dropped:** anything that can't be sorted goes into *Additional notes* and prints with the note. |
+| ⚡ **Quick type** | Type or paste the call in plain words — *"call Phil Gordon 5167879090 SWA Development Corp, Industrial Zone, wants to speak to Law Staff, questions about development of 4 retail sites… email pgordon@swadevelopment.co… prefers calls after 3pm"* — and the form fills itself. **Nothing is dropped:** anything that can't be sorted goes into *Additional notes* and prints with the note. |
 | 🐦 **Bird Seed** | Press **Bird Seed**, tick the seeds you want (or **Select all**), and review suggested details for your note. See below. |
 | 🖨️ **Export PDF / Print** | Pick **Full page**, **Pad slip (4¼ × 5½ in)** or **2 per sheet**, press *Export PDF / Print*, choose **Save as PDF** (or your printer). |
 | 🗒️ **Four views** | **Note**, **Vintage** slip that mirrors the paper pad, **Plain text**, and **Markdown** — copy or download any of them. |
@@ -72,24 +72,30 @@ WHILE YOU WERE OUT
 
 CALLBACK REQUEST
 
-CALLER: Cian O’Brien
-COMPANY: OCS Development Group
-PHONE: 646-331-2205
+FOR: Law Staff
+
+CALLER: Phil Gordon
+COMPANY: SWA Development Corp
+PHONE: 516-787-9090
+ALSO: pgordon@swadevelopment.co · 646-898-0560
 
 REASON FOR CALL
-Cian was transferred by the City of Long Beach Building Department.
-Cian has questions concerning:
-Industrial Zone / Zoning
-Building Permits
-Mercantile License
+Phil wants to speak with Law Staff.
+Phil has questions concerning:
+Industrial Zone
+Development of 4 retail sites
+Development of 2 residential sites
 
 REQUESTED ACTION
-Please return Cian’s call regarding the above matters.
+Please call Phil back after 3 pm.
+
+ADDITIONAL NOTES
+Prefers calls after 3 pm. Can also be reached by email or SMS.
 
 RELEVANT REFERENCE INFORMATION
-City of Long Beach — Building Department
-516-431-1005
-https://www.longbeachny.gov/building
+SWA Development Corp
+Company website
+https://swadevelopment.co
 ```
 
 Press **Load example** in the app to see the full version.
@@ -143,7 +149,7 @@ Bird Seed reads your note and **suggests details to add**. Pick any seeds (or se
 
 | Seed | Does | How it works |
 |---|---|---|
-| 🌻 **Sunflower** | Full name | Fixes capitalisation (`cian o'brien` → `Cian O’Brien`), completes a first name from an email like `first.last@…`, or from an earlier call |
+| 🌻 **Sunflower** | Full name | Fixes capitalisation (`phil gordon` → `Phil Gordon`), completes a first name from an email like `first.last@…`, or from an earlier call |
 | 🌾 **Millet** | Phone check | Standard `###-###-####` format, area-code region (NY area codes built in), flags short, invalid or reserved-for-fiction `555-01xx` numbers. It can’t tell who owns the line |
 | ⚫ **Nyjer** | Email | Confirms an email’s domain accepts mail (public DNS). With no email, proposes likely addresses on the company’s verified mail domain, marked as guesses |
 | 🌼 **Safflower** | Websites | Tries sensible domains for the company and keeps only ones that exist. Confirm it’s the right company |
@@ -160,10 +166,11 @@ Trust labels on every suggestion: **✓ From a source** · **Worked out from you
 
 ## 🏷️ Versions & updates
 
-Current version: **0.3.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+Current version: **0.3.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
 
 | Version | Highlights |
 |---|---|
+| **0.3.1** | 🧪 New sample call (Phil Gordon, SWA Development Corp); Quick type understands “wants to speak to…”, preferences like “after 3pm”, and bare websites |
 | **0.3.0** | 🐦 **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls — you tick what goes in your note |
 | **0.2.0** | ✨ Calmer Keep × Apple Notes layout, nothing lost in Quick type (leftovers → Additional notes), clean calligraphy Vintage slip, larger text by default |
 | **0.1.0** | 🚀 First release: Bluebird UI (8 themes), ⚡ Quick type, 🔎 lookups, 🖨️ PDF layouts, 🔄 auto-publish |
