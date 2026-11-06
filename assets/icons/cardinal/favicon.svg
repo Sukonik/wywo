@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <title>WYWO Cardinal</title>
-  <style>.b{fill:#c4112f}@media (prefers-color-scheme:dark){.b{fill:#ff7288}}</style>
-  <defs><mask id="e"><rect width="64" height="64" fill="#fff"/><circle cx="47" cy="26" r="2.2"/></mask></defs>
-  <path class="b" mask="url(#e)" d="M24 36C23 29 26 18 35 9C39 13 42 17 44 21C41 21 37 23 34 25C31 27 28 31 27 34C29 27 36 22 43 22C49 22 54 26 55 31L62 33L55 36C54 46 47 53 37 54C30 55 24 52 20 47L3 50L13 42L3 33L20 38L24 36Z"/>
-</svg>

@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WYWO — While You Were Out</title>
   <meta name="description" content="Jot down a call in plain words. Get a clean, readable, printable callback note.">
-  <link rel="icon" id="favSvg" href="assets/icons/bluebird/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="favicon.ico" sizes="48x48">
-  <link rel="apple-touch-icon" id="appleIcon" href="assets/icons/bluebird/apple-touch-icon.png">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" id="fav32" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" id="fav16" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" id="appleIcon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" id="themeColor" content="#2563c9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,7 +50,10 @@
     <button class="bb-btn bb-btn--ghost" type="button" id="notesBtn" aria-controls="drawer" aria-expanded="false">🗂 Notes <span class="bb-badge" id="savedCount">0</span></button>
     <div class="pop-wrap">
       <button class="bb-btn bb-btn--ghost" type="button" id="themeBtn" aria-expanded="false" aria-controls="themePop">🐦 <span id="themeLabel">Bluebird</span></button>
-      <div class="pop" id="themePop" hidden><div id="swatches" role="group" aria-label="Theme"></div></div>
+      <div class="pop" id="themePop" hidden>
+        <div class="pop__h">Colour theme</div><div id="swatches" role="group" aria-label="Colour theme"></div>
+        <div class="pop__h">App icon</div><div id="icons" class="icons" role="group" aria-label="App icon"></div>
+      </div>
     </div>
     <button class="bb-btn bb-btn--ghost bb-btn--icon" id="modeBtn" type="button" aria-label="Toggle dark mode" title="Light / dark">🌗</button>
   </div>
@@ -157,7 +161,7 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.4.0 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.5.0 · build <span id="build">dev</span></footer>
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 

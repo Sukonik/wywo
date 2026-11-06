@@ -2,6 +2,15 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.5.0] — 2026-11-06 🌲
+### Added
+- 🌲 **Favicons 2.0**: six botanical tree icons (Cedar default, Pine, Maple, Hazelnut, Linden, Beech) in every size: `.ico`, 16/32/48, Apple touch, 192/512
+- **Theme menu → App icon** picker; the choice swaps the tab and touch icons and is remembered
+- Relative-path `site.webmanifest` so installing from GitHub Pages works
+### Changed
+- Replaced the bird-colour favicon set from 0.4.0 (the in-page logo still recolours with the theme)
+- Icon board at `assets/icons/` now shows the six trees
+
 ## [0.4.0] — 2026-11-06 🪶
 ### Added
 - 🪶 **Icons 2.0**: WYWO bluebird logo (from the Logo Starter) in the header, footer and printed note, recoloured by theme
