@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.8.1-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -49,6 +49,8 @@ Every emoji in the app and this README means the same thing everywhere.
 | ✨ | Organize — sort what you typed into fields | Quick type |
 | 🎨 | Bluebird UI colour themes | Appearance menu |
 | 🪶 | The WYWO bluebird logo | Header, footer, printed note |
+| 🌤 | **Bird Watch**: weather chip, weather panel, per-note weather / day / season tags | Header chip · 🌤 Weather · form |
+| 🗓 🍂 🌦 🌇 🇺🇸 | The five tags: day & time · season · weather · sunrise/sunset · holiday | Bird Watch tags |
 | 🌲 | **Forest** (Cedar, Pine, Maple, Hazelnut, Linden, Beech): app icon + line art | Appearance menu |
 | ☀️ 🌙 | Light / dark mode (or Auto) | Header, Appearance menu |
 | ✏️ 👁 | Edit / Preview switch on phones | Bottom bar |
@@ -65,6 +67,7 @@ Every emoji in the app and this README means the same thing everywhere.
 
 | | |
 |---|---|
+| 🌤 **Bird Watch** | Weather chip + panel (ClearSky, air, tides) and **per-note day, time, season, weather and holiday tags**. See [Bird Watch](#-bird-watch-weather--time-tags). |
 | ⚡ **Quick type** | Type or paste the call in plain words — *"call Phil Gordon 5167879090 SWA Development Corp, Industrial Zone, wants to speak to Law Staff, questions about development of 4 retail sites… email pgordon@swadevelopment.co… prefers calls after 3pm"* — and the form fills itself. **Nothing is dropped:** anything that can't be sorted goes into *Additional notes* and prints with the note. |
 | 🐦 **Bird Seed** | Looks up missing or relevant info (names, phones, emails, websites, LinkedIn, addresses, city departments) from real sources and **asks before adding it**. See [Bird Seed](#-bird-seed). |
 | 🖨️ **Export PDF / Print** | Pick **Full page**, **Pad slip (4¼ × 5½ in)** or **2 per sheet**, press *Export PDF / Print*, choose **Save as PDF** (or your printer). |
@@ -198,6 +201,43 @@ The website seeds (🌻 🎃 🌾 🥬 🍉 🥒 🍈) read the company’s own 
 - LinkedIn can’t be read directly, so LinkedIn results come from links on the company’s own site; otherwise you get a guess plus search links.
 - Always glance at **see source ↗** for anything you’re going to rely on.
 
+## 🌤 Bird Watch (weather & time tags)
+
+Every call happens at a time, on a day, in some weather. **Bird Watch** captures that context and prints it with the note.
+
+### Per-note tags
+Open **🌤 Bird Watch tags** in the form (or just look at the note). Each tag has its own switch:
+
+| Tag | Example | Needs internet? |
+|---|---|---|
+| 🗓 **Day & time** | Friday, Nov 6 · 5:47 PM (evening) | No |
+| 🍂 **Season** | Fall (🌱 spring · ☀️ summer · ❄️ winter) | No |
+| 🌦 **Weather** | ⛅ Partly cloudy, 58°F · 💨 Wind NW 12 mph | Yes: place coordinates only |
+| 🌇 **Sunrise & sunset** | Sunrise 6:28 AM · Sunset 4:38 PM | Yes |
+| 🇺🇸 **Holiday** | Veterans Day in 5 days, Thanksgiving (today)… (US federal) | No |
+
+- Appears on the **Note**, **Vintage** slip, **Text**, **Markdown** and printouts.
+- **Auto-tag** fills the weather in for new notes. Change the date or time and it re-tags. It works for **past calls** (history back to 1940), **today**, and **up to 7 days ahead**.
+- The weather is for the **place’s** local time even if your device is in another timezone.
+- Turn **Auto-tag** off and use **🔄 Tag weather now** when you want it.
+
+### The weather panel
+The header **weather chip** (🌧 53°F) and the **🌤 Weather** button on phones open the panel:
+
+| Tab | What it shows |
+|---|---|
+| **Now** | Current conditions, next 24 hours, 7-day outlook · place picker (Long Beach area built in, or **search any city**, or 📍 my location) · °F / °C |
+| **ClearSky** | The full [ClearSky weather app](https://sukonik.github.io/weather-app/) inside Bird Watch |
+| **Air** | [ClearSky Air Quality](https://sukonik.github.io/weather-app/air-quality.html) |
+| **Tides** | [ClearSky Tide Charts](https://sukonik.github.io/weather-app/tides.html) |
+
+**🏷 Tag this note** puts the selected place’s weather on the current note.
+
+### Where the data comes from
+[Open-Meteo](https://open-meteo.com/): free, no API key, the same source ClearSky uses. Only a place’s **coordinates** are sent, never note text. The design borrows ideas from the [Long Beach Bike Club ride-weather page](https://sukonik.github.io/lbbikeclub/weather.html) (header chip, place picker, hourly + 7-day outlook, colour-field background).
+
+> 🧪 Tested against the live Open-Meteo service (forecast, past days, historical archive, city search) and in-browser with simulated data on desktop and a 390 px phone. The embedded ClearSky pages load, but I haven’t tested them on a real phone.
+
 ## 🌲 Forests, icons & logo
 
 The WYWO bluebird (pen-nib wing, paper-fold tail) is the brand mark in the header, footer and printed note, recoloured by the colour theme.
@@ -238,12 +278,13 @@ Built phone-first, with the same features as desktop:
 
 ## 🕰️ Website version history
 
-How the site has grown: eight releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
+How the site has grown: nine releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.8.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.8.1 · build a1b2c3d`).
+Current version: **0.9.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.9.0 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|
+| <img src="docs/history/v9.jpg" width="420" alt="v9"> | **v9 · 0.9.0** 🌤<br>Bird Watch | **Bird Watch**: a weather chip in the header, a weather panel (now · hourly · 7 days · any city · ClearSky, Air and Tides), and **per-note tags** for day, time, season, weather, sunrise/sunset and nearby holidays; colour-field background and richer menus inspired by the Long Beach Bike Club site; v0.8.1 fixed the phone Call-type chips |
 | <img src="docs/history/v8.jpg" width="420" alt="v8"> | **v8 · 0.8.0** 🌲<br>Forests & mobile | **Forest line-art themes** (Cedar, Pine, Maple, Hazelnut, Linden, Beech) in a new **Appearance** menu, a full **mobile redesign** (bottom-sheet menus, Edit / Preview bar, thumb-sized buttons), favicons with **transparent corners**, one-page printing kept |
 | <img src="docs/history/v7.jpg" width="420" alt="v7"> | **v7 · 0.7.0** 🐦<br>Bird Seed 2.0 | Ten real look-up seeds that read the company’s own website (free reader, or **Firecrawl / Crawl4AI / ScrapeGraphAI** with your key), then **ask you** before adding names, phones, emails, websites, LinkedIn, addresses and summaries |
 | <img src="docs/history/v6.jpg" width="420" alt="v6"> | **v6 · 0.6.0** 📞<br>Call is for | **Call is for** always on every note (“Check with team” when unknown), routing phrases in Quick type, 🗑 **Clear all** with an “Are you sure?” checkbox |
@@ -257,7 +298,7 @@ Current version: **0.8.1**. Every merge to `main` publishes automatically, and t
 
 ## 🔒 Privacy
 
-Everything runs in your browser. Drafts, saved notes and any API keys live in `localStorage` on your device. The only network calls are the optional **Bird Seed** look-ups (see [Bird Seed](#-bird-seed)): they send a company website address, name or email domain to the reader/engine you chose, public DNS, Wikidata or OpenStreetMap, **never the whole note**. Always verify looked-up details before relying on them.
+Everything runs in your browser. Drafts, saved notes and any API keys live in `localStorage` on your device. The only network calls are the optional **Bird Seed** look-ups (see [Bird Seed](#-bird-seed)) and **Bird Watch** weather (only a place’s coordinates go to Open-Meteo). Bird Seed look-ups send a company website address, name or email domain to the reader/engine you chose, public DNS, Wikidata or OpenStreetMap, **never the whole note**. Always verify looked-up details before relying on them.
 
 ## 🗂️ Project layout
 
@@ -272,6 +313,7 @@ assets/art/           forest line illustrations (also inlined in index.html)
 tools/                build-art.js · build-favicons.sh
 src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
 src/birdseed.js       Bird Seed engine (10 seeds + look-up engines)
+src/birdwatch.js      Bird Watch engine (weather, tags, holidays)
 src/directory.js      verified Long Beach, NY department directory
 .github/workflows/    auto-merge + Pages publish
 ```

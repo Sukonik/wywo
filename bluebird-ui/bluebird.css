@@ -10,14 +10,14 @@
 
 /* ---------- 1. Brand tokens: one colour pair per bird ---------- */
 :root,
-[data-theme="bluebird"]  { --bb-brand: #2563c9; --bb-brand-dk: #7aa7ff; --bb-on: #fff; --bb-on-dk: #0b1730; }
-[data-theme="parakeet"]  { --bb-brand: #23913f; --bb-brand-dk: #62d98a; --bb-on: #fff; --bb-on-dk: #08210f; }
-[data-theme="cardinal"]  { --bb-brand: #c4112f; --bb-brand-dk: #ff7288; --bb-on: #fff; --bb-on-dk: #2a0610; }
-[data-theme="goldfinch"] { --bb-brand: #f0b400; --bb-brand-dk: #ffd43b; --bb-on: #2b2000; --bb-on-dk: #2b2000; }
-[data-theme="spoonbill"] { --bb-brand: #d9488d; --bb-brand-dk: #ff93c4; --bb-on: #fff; --bb-on-dk: #2c0a1b; }
-[data-theme="sparrow"]   { --bb-brand: #865538; --bb-brand-dk: #d1a07a; --bb-on: #fff; --bb-on-dk: #24140a; }
-[data-theme="robin"]     { --bb-brand: #e0651a; --bb-brand-dk: #ffa05c; --bb-on: #fff; --bb-on-dk: #2b1100; }
-[data-theme="heron"]     { --bb-brand: #262b36; --bb-brand-dk: #cdd3e0; --bb-on: #fff; --bb-on-dk: #11141a; }
+[data-theme="bluebird"]  { --bb-accent: #19b6e6; --bb-brand: #2563c9; --bb-brand-dk: #7aa7ff; --bb-on: #fff; --bb-on-dk: #0b1730; }
+[data-theme="parakeet"]  { --bb-accent: #c2e03a; --bb-brand: #23913f; --bb-brand-dk: #62d98a; --bb-on: #fff; --bb-on-dk: #08210f; }
+[data-theme="cardinal"]  { --bb-accent: #ff8a3d; --bb-brand: #c4112f; --bb-brand-dk: #ff7288; --bb-on: #fff; --bb-on-dk: #2a0610; }
+[data-theme="goldfinch"] { --bb-accent: #ff9f43; --bb-brand: #f0b400; --bb-brand-dk: #ffd43b; --bb-on: #2b2000; --bb-on-dk: #2b2000; }
+[data-theme="spoonbill"] { --bb-accent: #b58cff; --bb-brand: #d9488d; --bb-brand-dk: #ff93c4; --bb-on: #fff; --bb-on-dk: #2c0a1b; }
+[data-theme="sparrow"]   { --bb-accent: #d9a066; --bb-brand: #865538; --bb-brand-dk: #d1a07a; --bb-on: #fff; --bb-on-dk: #24140a; }
+[data-theme="robin"]     { --bb-accent: #ffc43d; --bb-brand: #e0651a; --bb-brand-dk: #ffa05c; --bb-on: #fff; --bb-on-dk: #2b1100; }
+[data-theme="heron"]     { --bb-accent: #6b8cff; --bb-brand: #262b36; --bb-brand-dk: #cdd3e0; --bb-on: #fff; --bb-on-dk: #11141a; }
 
 /* ---------- 2. Semantic tokens (light) ---------- */
 :root {

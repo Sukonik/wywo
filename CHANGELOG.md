@@ -2,6 +2,17 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.9.0] — 2026-11-06 🌤
+### Added: Bird Watch
+- 🌤 **Weather chip** in the header (icon + temperature) and a **Weather** button in the phone bar open the **Bird Watch panel**: current conditions, next 24 hours, 7 days, place picker (Long Beach area, any city search, or 📍 my location), °F / °C
+- 🌐 **ClearSky integration**: the full ClearSky weather app, **Air Quality** and **Tide Charts** open as tabs inside the panel (with “Open full page ↗”)
+- 🏷 **Per-note tags**: 🗓 day & time (with daypart), 🍂 season, 🌦 weather, 🌇 sunrise & sunset, 🇺🇸 nearby US holiday. Each has a switch. Shown on the Note, Vintage slip, Text, Markdown and printouts; saved with the note
+- Auto-tag: weather fills in for new notes and re-tags when the date/time changes; works for past calls, today and up to 7 days ahead; timezone-correct for the place
+- Data: Open-Meteo (free, no key); only coordinates are sent
+### Changed (inspired by the Long Beach Bike Club site)
+- Soft colour-field background in the theme colours (second colour per bird), shimmer on primary buttons, Inter typeface, richer menu and text styling
+- Phone bar is now Edit · Preview · Bird Seed · Weather
+
 ## [0.8.1] — 2026-11-06 🩹
 ### Fixed (from real-iPhone feedback)
 - **Call type** chips were stretched into giant checkboxes with clipped labels on phones (text-field styling leaked onto checkboxes)

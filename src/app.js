@@ -58,7 +58,7 @@
   var view = 'modern';
 
   function blank() {
-    return { forWho: '', urgent: false, date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', extra: '', refs: [], signed: '' };
+    return { forWho: '', urgent: false, date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', extra: '', refs: [], signed: '', wx: null, tagsOn: { when: true, season: true, weather: true, sun: false, holiday: true } };
   }
 
   /* ---------------- Theme UI ---------------- */
@@ -158,6 +158,7 @@
     });
     Array.prototype.forEach.call(methodsEl.querySelectorAll('input'), function (i) { i.checked = state.methods.indexOf(i.value) > -1; });
     renderRefs();
+    normTags(); syncBw(); scheduleTagIfStale();
   }
 
   function readForm() {
@@ -203,6 +204,7 @@
       (s.phone ? (tel ? '<a class="note__phone" href="' + esc(tel) + '">' + esc(s.phone) + '</a>' : '<span class="note__phone">' + esc(s.phone) + '</span>') : '') +
       (s.alt ? '<span>' + esc(s.alt) + '</span>' : '') + '</div>';
     if (s.methods.length) h += '<div class="chips">' + s.methods.map(function (m) { return '<span class="bb-badge">' + esc(m) + '</span>'; }).join('') + '</div>';
+    h += condHtml(s);
     if (s.reason || topics.length) {
       h += '<div><h3>Reason for call</h3>' + (s.reason ? '<p>' + esc(s.reason) + '</p>' : '');
       if (topics.length) h += (s.reason ? '<p style="margin-top:.5em">' + esc(first(s.caller)) + ' has questions concerning:</p>' : '') + '<ul>' + topics.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
@@ -226,7 +228,7 @@
   function renderClassic(s) {
     var box = function (m) { return '<div><u>' + (s.methods.indexOf(m) > -1 ? '✓' : '') + '</u>' + esc(m.toUpperCase()) + '</div>'; };
     var topics = lines(s.topics);
-    var msg = [s.reason, topics.length ? 'Questions re: ' + topics.join(', ') + '.' : '', s.action, s.extra && s.extra.trim(),
+    var msg = [s.reason, topics.length ? 'Questions re: ' + topics.join(', ') + '.' : '', s.action, s.extra && s.extra.trim(), condLine(s) && 'Notes: ' + condLine(s) + '.',
       s.refs.filter(function (r) { return r.title || r.detail; }).map(function (r) { return r.title + (r.detail ? ' — ' + r.detail : ''); }).join('\n')].filter(Boolean).join('\n');
     var f = function (label, v, extra) { return '<div class="ln"><span class="lbl2">' + label + '</span><span class="hw">' + esc(v) + '</span>' + (extra || '') + '</div>'; };
     return '<div class="slip">' +
@@ -247,6 +249,7 @@
     o.push(s.urgent ? 'CALLBACK REQUEST — URGENT' : 'CALLBACK REQUEST', '');
     o.push('CALL IS FOR: ' + forLabel(s));
     if (fmtDate(s.date, s.time)) o.push('DATE: ' + fmtDate(s.date, s.time));
+    if (condLine(s)) o.push('CONDITIONS: ' + condLine(s));
     o.push('');
     o.push('CALLER: ' + s.caller, 'COMPANY: ' + s.company, 'PHONE: ' + s.phone);
     if (s.alt) o.push('ALSO: ' + s.alt);
@@ -271,6 +274,7 @@
     o.push('# 📞 While You Were Out', '', '## Callback request' + (s.urgent ? ' — **URGENT**' : ''), '');
     o.push('**Call is for:** ' + forLabel(s) + '  ');
     if (fmtDate(s.date, s.time)) o.push('**Date:** ' + fmtDate(s.date, s.time) + '  ');
+    if (condLine(s)) o.push('**Conditions:** ' + condLine(s) + '  ');
     o.push('**Caller:** ' + s.caller + '  ', '**Company:** ' + s.company + '  ', '**Phone:** ' + s.phone);
     if (s.alt) o.push('', '**Also:** ' + s.alt);
     if (s.reason || topics.length) {
@@ -291,6 +295,7 @@
   function currentText() { return view === 'markdown' ? toMarkdown(state) : toText(state); }
 
   function renderPane() {
+    previewBw();
     if (view === 'modern') pane.innerHTML = renderModern(state);
     else if (view === 'classic') pane.innerHTML = renderClassic(state);
     else pane.innerHTML = '<textarea class="textbox" readonly aria-label="' + view + ' output" wrap="off">' + esc(currentText()) + '</textarea>';
@@ -600,6 +605,130 @@
     toast(n ? '🐦 Added ' + n + ' detail' + (n > 1 ? 's' : '') + ' to your note' : 'Nothing new to add');
   });
 
+  /* ---------------- 🌤 Bird Watch: weather & time tags + weather panel ---------------- */
+  var BW = BirdWatch, wxData = null, wxTimer = 0;
+  var TAGS = [['when', '🗓 Day & time'], ['season', '🍂 Season'], ['weather', '🌦 Weather'], ['sun', '🌇 Sunrise & sunset'], ['holiday', '🇺🇸 Holiday']];
+  var CLEARSKY = { clearsky: 'https://sukonik.github.io/weather-app/', air: 'https://sukonik.github.io/weather-app/air-quality.html', tides: 'https://sukonik.github.io/weather-app/tides.html' };
+  function allPlaces() { return BW.PLACES.concat(ui.places || []); }
+  function placeById(id) { return allPlaces().filter(function (p) { return p.id === id; })[0] || BW.PLACES[0]; }
+  function curPlace() { return placeById(ui.place || 'long-beach'); }
+  function U() { return ui.units === 'metric' ? 'metric' : 'imperial'; }
+  function normTags() { state.tagsOn = Object.assign({ when: true, season: true, weather: true, sun: false, holiday: true }, state.tagsOn || {}); }
+  function condHtml(s) {
+    var c = BW.conditions(s, U());
+    return c.length ? '<div class="note__conds">' + c.map(function (x) { return '<span class="cond cond--' + x.k + '"><i aria-hidden="true">' + x.ico + '</i>' + esc(x.text) + '</span>'; }).join('') + '</div>' : '';
+  }
+  function condLine(s) { return BW.conditions(s, U()).filter(function (c) { return !c.d; }).map(function (c) { return c.text; }).join(' · '); }
+
+  // form section
+  var bwT = $('#bwToggles');
+  TAGS.forEach(function (t) { var l = document.createElement('label'); l.className = 'bb-check'; l.innerHTML = '<input type="checkbox" data-k="' + t[0] + '"> ' + esc(t[1]); bwT.appendChild(l); });
+  bwT.addEventListener('change', function (e) {
+    var k = e.target.dataset.k; if (!k) return;
+    readForm(); normTags(); state.tagsOn[k] = e.target.checked;
+    if (k === 'weather' && e.target.checked && !state.wx) tagWeather();
+    update(); previewBw();
+  });
+  function fillPlaces(sel) {
+    var cur = ui.place || 'long-beach';
+    sel.innerHTML = allPlaces().map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
+  }
+  function syncBw() {
+    normTags();
+    Array.prototype.forEach.call(bwT.querySelectorAll('input'), function (i) { i.checked = !!state.tagsOn[i.dataset.k]; });
+    fillPlaces($('#bwPlace')); $('#bwAuto').checked = ui.auto !== false;
+    previewBw();
+  }
+  function previewBw() {
+    if (!$('#bwSummary')) return;
+    var c = BW.conditions(state, U()).filter(function (x) { return !x.d; });
+    $('#bwSummary').textContent = c.length ? c.map(function (x) { return x.text.replace(/ \(.*?\)/, ''); }).slice(0, 4).join(' · ') : 'day · time · season · weather';
+    $('#bwPreview').innerHTML = condHtml(state) || '<p class="bb-hint">Nothing tagged yet.</p>';
+    if (state.wx && state.tagsOn.weather && state.wx.at !== state.date + ' ' + (state.time || '') && ui.auto === false) bwStatus('Date or time changed. Press “Tag weather now” to refresh the weather.');
+  }
+  function bwStatus(msg) { $('#bwStatus').textContent = msg || ''; }
+  function tagWeather() {
+    readForm(); normTags();
+    if (!state.date) { bwStatus('Pick a date first.'); return Promise.resolve(); }
+    var p = curPlace(), d0 = state.date, t0 = state.time;
+    bwStatus('Looking up weather in ' + p.name + '…');
+    return BW.at(p, state.date, state.time || '12:00').then(function (w) {
+      if (state.date !== d0 || state.time !== t0) return;      // edited while loading; a newer lookup is coming
+      w.at = d0 + ' ' + (t0 || ''); state.wx = w; state.tagsOn.weather = true; update(); syncBw();
+      bwStatus('✓ Tagged: ' + BW.describe(w.code) + ', ' + BW.T(w.temp, U()) + BW.TU(U()) + ' in ' + p.name + '.');
+    }).catch(function (e) { bwStatus('⚠ ' + e.message + '. Day, time and season are still tagged.'); });
+  }
+  function scheduleTag() { clearTimeout(wxTimer); if (ui.auto === false || state.tagsOn.weather === false) return; wxTimer = setTimeout(tagWeather, 700); }
+  function scheduleTagIfStale() { if (!state.wx || state.wx.at !== state.date + ' ' + (state.time || '')) scheduleTag(); }
+  form.addEventListener('input', function (e) { if (e.target.name === 'date' || e.target.name === 'time') scheduleTag(); });
+  $('#bwFetch').addEventListener('click', tagWeather);
+  $('#bwAuto').addEventListener('change', function () { ui.auto = this.checked; store(KEY_UI, ui); if (this.checked) scheduleTagIfStale(); });
+  $('#bwPlace').addEventListener('change', function () { ui.place = this.value; store(KEY_UI, ui); fillPlaces($('#wxPlace')); refreshChip(); state.wx = null; scheduleTag(); });
+
+  // header chip + panel
+  function refreshChip() {
+    var p = curPlace(), chip = $('#wxChip');
+    return BW.load(p).then(function (d) {
+      wxData = d; var n = d.now, u = U();
+      chip.hidden = false; chip.dataset.tone = BW.tone(n.code);
+      $('#wxChipI').textContent = BW.emoji(n.code, n.day); $('#wxChipT').textContent = BW.T(n.temp, u) + BW.TU(u); $('#wxChipD').textContent = BW.describe(n.code);
+      chip.setAttribute('aria-label', 'Weather in ' + p.name + ': ' + BW.describe(n.code) + ', ' + BW.T(n.temp, u) + BW.TU(u) + '. Open Bird Watch.');
+      if ($('#wxDlg').open) renderNow();
+    }, function (e) { chip.hidden = true; wxData = null; if ($('#wxDlg').open) $('#wxCurrent').innerHTML = '<p class="bb-hint">⚠ ' + esc(e.message) + '. Try again in a moment.</p>'; });
+  }
+  function hrLabel(iso) { var h = +iso.slice(11, 13); return (h % 12 || 12) + (h < 12 ? 'a' : 'p'); }
+  function renderNow() {
+    var d = wxData; if (!d) return; var n = d.now, u = U();
+    $('#wxCurrent').innerHTML = '<div class="wx__big"><span class="wx__ico" aria-hidden="true">' + BW.emoji(n.code, n.day) + '</span><div><div class="wx__temp">' + BW.T(n.temp, u) + BW.TU(u) + '</div><div class="wx__desc">' + esc(BW.describe(n.code)) + ' · feels ' + BW.T(n.feels, u) + BW.TU(u) + '</div></div></div>' +
+      '<div class="wx__stats"><span>💨 ' + BW.dirName(n.dir) + ' ' + BW.S(n.wind, u) + ' ' + BW.SU(u) + '</span><span>💧 ' + Math.round(n.humidity) + '%</span><span>☔ ' + n.pop + '%</span><span>🕶 UV ' + Math.round(n.uv) + '</span><span>🌅 ' + BW.time12(d.sunrise.slice(11, 16)) + '</span><span>🌇 ' + BW.time12(d.sunset.slice(11, 16)) + '</span></div>';
+    $('#wxHours').innerHTML = d.hours.map(function (h) { return '<div class="wx__hr"><small>' + hrLabel(h.time) + '</small><i aria-hidden="true">' + BW.emoji(h.code, h.day) + '</i><b>' + BW.T(h.temp, u) + '°</b><small>' + (h.pop >= 20 ? h.pop + '%' : '&nbsp;') + '</small></div>'; }).join('');
+    $('#wxDays').innerHTML = d.days.map(function (x, i) {
+      var wd = i === 0 ? 'Today' : new Date(x.date + 'T12:00').toLocaleDateString('en-US', { weekday: 'short' });
+      return '<div class="wx__day"><span class="wx__wd">' + wd + '</span><i aria-hidden="true">' + BW.emoji(x.code, true) + '</i><span class="wx__pop">' + (x.pop >= 20 ? '☔ ' + x.pop + '%' : '') + '</span><b>' + BW.T(x.hi, u) + '°</b><span class="wx__lo">' + BW.T(x.lo, u) + '°</span></div>';
+    }).join('');
+    $('#wxFootNote').textContent = 'Tags use ' + d.place.name + '.';
+  }
+  var wxDlg = $('#wxDlg');
+  function showTab(t) {
+    Array.prototype.forEach.call(document.querySelectorAll('#wxTabs button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.tab === t)); });
+    $('#wxNow').hidden = t !== 'now'; $('#wxFrame').hidden = t === 'now'; $('#wxTag').hidden = t !== 'now';
+    if (t !== 'now') { var u = CLEARSKY[t], f = $('#wxIframe'); if (f.getAttribute('data-src') !== u) { f.src = u; f.setAttribute('data-src', u); } $('#wxOpen').href = u; }
+  }
+  function openWx(tab) { readForm(); showTab(tab || 'now'); fillPlaces($('#wxPlace')); closeDrawer(); if (wxData) renderNow(); else refreshChip(); if (wxDlg.showModal) wxDlg.showModal(); else wxDlg.setAttribute('open', ''); }
+  function closeWx() { if (wxDlg.close) wxDlg.close(); else wxDlg.removeAttribute('open'); }
+  $('#wxChip').addEventListener('click', function () { openWx('now'); });
+  $('#mWx').addEventListener('click', function () { openWx('now'); });
+  $('#wxClose').addEventListener('click', closeWx);
+  wxDlg.addEventListener('click', function (e) { if (e.target === wxDlg) closeWx(); });
+  $('#wxTabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+  $('#wxPlace').addEventListener('change', function () { ui.place = this.value; store(KEY_UI, ui); fillPlaces($('#bwPlace')); wxData = null; $('#wxCurrent').innerHTML = '<p class="bb-hint">Loading weather…</p>'; refreshChip(); state.wx = null; scheduleTag(); });
+  $('#wxUnits').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; ui.units = b.dataset.u; store(KEY_UI, ui); syncUnits(); if (wxData) { renderNow(); refreshChip(); } renderPane();
+  });
+  function syncUnits() { Array.prototype.forEach.call(document.querySelectorAll('#wxUnits button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.u === U())); }); }
+  syncUnits();
+  function doSearch() {
+    var q = $('#wxSearch').value.trim(), box = $('#wxResults'); if (q.length < 2) return;
+    box.hidden = false; box.innerHTML = '<p class="bb-hint">Searching…</p>';
+    BW.search(q).then(function (list) {
+      box._list = list;
+      box.innerHTML = list.length ? list.map(function (r, i) { return '<button type="button" class="bb-btn bb-btn--sm" data-i="' + i + '">' + esc(r.name) + '</button>'; }).join('') : '<p class="bb-hint">No match. Try a nearby city.</p>';
+    }, function (e) { box.innerHTML = '<p class="bb-hint">⚠ ' + esc(e.message) + '</p>'; });
+  }
+  $('#wxSearchBtn').addEventListener('click', doSearch);
+  $('#wxSearch').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+  function pickPlace(r) {
+    ui.places = (ui.places || []).filter(function (p) { return p.id !== r.id; }).concat([r]).slice(-6); ui.place = r.id; store(KEY_UI, ui);
+    fillPlaces($('#wxPlace')); fillPlaces($('#bwPlace')); $('#wxResults').hidden = true; $('#wxSearch').value = ''; wxData = null; refreshChip(); state.wx = null; scheduleTag();
+  }
+  $('#wxResults').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) pickPlace(this._list[+b.dataset.i]); });
+  $('#wxGeo').addEventListener('click', function () {
+    if (!navigator.geolocation) { toast('Location isn’t available on this device'); return; }
+    navigator.geolocation.getCurrentPosition(function (pos) { pickPlace({ id: 'geo', name: 'My location', lat: +pos.coords.latitude.toFixed(3), lon: +pos.coords.longitude.toFixed(3) }); },
+      function () { toast('Couldn’t get your location'); }, { timeout: 8000 });
+  });
+  $('#wxTag').addEventListener('click', function () { tagWeather().then(function () { closeWx(); toast('🏷 Weather tagged on this note'); }); });
+
   /* ---------------- Mobile: Edit / Preview switch ---------------- */
   function setPane(p) {
     document.body.dataset.pane = p;
@@ -613,7 +742,7 @@
   /* ---------------- Boot ---------------- */
   if (!Array.isArray(state.refs)) state.refs = [];
   if (!Array.isArray(state.methods)) state.methods = [];
-  writeForm(); renderSaved(); renderPane();
+  writeForm(); renderSaved(); renderPane(); refreshChip();
 
   // expose for tests
   window.__wywo = { toText: toText, toMarkdown: toMarkdown, parseQuick: parseQuick, EXAMPLE: EXAMPLE };
