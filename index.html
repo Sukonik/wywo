@@ -13,7 +13,7 @@
   <meta name="theme-color" id="themeColor" content="#2563c9">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
   <script>
     // Apply saved theme / size before paint to avoid a flash.
     try {
@@ -64,6 +64,9 @@
       <span class="brand__name">WYWO</span>
     </a>
     <span class="topbar__sp"></span>
+    <button class="wxchip" type="button" id="wxChip" hidden aria-label="Weather">
+      <span class="wxchip__i" id="wxChipI" aria-hidden="true">🌤</span><span class="wxchip__t" id="wxChipT">--°</span><span class="wxchip__d" id="wxChipD"></span>
+    </button>
     <button class="bb-btn bb-btn--ghost tb" type="button" id="notesBtn" aria-controls="drawer" aria-expanded="false" aria-label="Saved notes"><span aria-hidden="true">🗂</span><span class="tb__t">Notes</span><span class="bb-badge" id="savedCount">0</span></button>
     <div class="pop-wrap">
       <button class="bb-btn bb-btn--ghost tb" type="button" id="themeBtn" aria-expanded="false" aria-controls="themePop" aria-label="Appearance: colour, forest, light or dark"><span class="tb__dot" id="themeDot" aria-hidden="true"></span><span class="tb__t" id="themeLabel">Bluebird</span><span class="tb__caret" aria-hidden="true">▾</span></button>
@@ -120,6 +123,21 @@
       <div class="refs-head"><span class="lbl">References</span><button class="bb-btn bb-btn--sm" type="button" id="addRef">＋ Add</button></div>
       <div id="refs" class="refs"></div>
 
+      <details class="more" id="bwBox">
+        <summary>🌤 Bird Watch tags <em id="bwSummary">day · time · season · weather</em></summary>
+        <div class="more__in">
+          <p class="bb-hint bw-lead">Tag this note with the day, time, season and weather around the call. Printed with the note.</p>
+          <div class="chips" id="bwToggles" role="group" aria-label="Tags to include"></div>
+          <div class="row">
+            <label class="f"><span>Weather place</span><select class="bb-select" id="bwPlace" aria-label="Weather place"></select></label>
+            <div class="f"><span aria-hidden="true">&nbsp;</span><button class="bb-btn" type="button" id="bwFetch">🔄 Tag weather now</button></div>
+          </div>
+          <label class="art-switch bw-auto"><input type="checkbox" id="bwAuto" checked> <span>Auto-tag weather on new notes</span></label>
+          <p class="bb-hint" id="bwStatus" role="status"></p>
+          <div class="bw-preview" id="bwPreview"></div>
+        </div>
+      </details>
+
       <details class="more">
         <summary>More details <em>date · time · email · call type · signed by</em></summary>
         <div class="more__in">
@@ -164,6 +182,42 @@
     </div>
     </section>
 </main>
+
+<!-- 🌤 Bird Watch (weather) -->
+<dialog class="seed wx" id="wxDlg" aria-labelledby="wxTitle">
+  <div class="seed__head">
+    <div><h2 id="wxTitle">🌤 Bird Watch</h2><p class="bb-hint">Weather for your notes · Open-Meteo data, ClearSky pages</p></div>
+    <button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="wxClose" aria-label="Close">✕</button>
+  </div>
+  <div class="wx__tabs"><div class="seg seg--full" id="wxTabs" role="tablist" aria-label="Weather views">
+    <button type="button" role="tab" data-tab="now" aria-pressed="true">Now</button>
+    <button type="button" role="tab" data-tab="clearsky" aria-pressed="false">ClearSky</button>
+    <button type="button" role="tab" data-tab="air" aria-pressed="false">Air</button>
+    <button type="button" role="tab" data-tab="tides" aria-pressed="false">Tides</button>
+  </div></div>
+  <div class="seed__body wx__body">
+    <section id="wxNow">
+      <div class="wx__bar">
+        <select class="mini wide" id="wxPlace" aria-label="Place"></select>
+        <div class="seg" id="wxUnits" role="group" aria-label="Units"><button type="button" data-u="imperial" aria-pressed="true">°F</button><button type="button" data-u="metric" aria-pressed="false">°C</button></div>
+      </div>
+      <div class="wx__find">
+        <input id="wxSearch" type="search" placeholder="Search any city…" aria-label="Search for a city" autocomplete="off">
+        <button class="bb-btn" type="button" id="wxSearchBtn">Search</button>
+        <button class="bb-btn" type="button" id="wxGeo" title="Use my location">📍</button>
+      </div>
+      <div id="wxResults" class="wx__results" hidden></div>
+      <div id="wxCurrent" class="wx__cur" aria-live="polite"><p class="bb-hint">Loading weather…</p></div>
+      <h3 class="wx__h">Next 24 hours</h3><div id="wxHours" class="wx__hours"></div>
+      <h3 class="wx__h">7 days</h3><div id="wxDays" class="wx__days"></div>
+    </section>
+    <section id="wxFrame" hidden>
+      <iframe id="wxIframe" title="ClearSky weather" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      <a class="bb-btn bb-btn--sm" id="wxOpen" href="https://sukonik.github.io/weather-app/" target="_blank" rel="noopener noreferrer">Open full page ↗</a>
+    </section>
+  </div>
+  <div class="seed__foot"><span class="bb-hint" id="wxFootNote">Tags use the place above.</span><span class="quick__sp"></span><button class="bb-btn bb-btn--primary" type="button" id="wxTag">🏷 Tag this note</button></div>
+</dialog>
 
 <!-- 🐦 Bird Seed -->
 <dialog class="seed" id="seedDlg" aria-labelledby="seedTitle">
@@ -210,17 +264,19 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.8.1 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.9.0 · build <span id="build">dev</span></footer>
 <nav class="mnav" aria-label="Switch between editing and preview">
   <button type="button" data-pane="edit" aria-pressed="true"><span aria-hidden="true">✏️</span>Edit</button>
   <button type="button" data-pane="preview" aria-pressed="false"><span aria-hidden="true">👁</span>Preview</button>
   <button type="button" id="mBird"><span aria-hidden="true">🐦</span>Bird Seed</button>
+  <button type="button" id="mWx"><span aria-hidden="true">🌤</span>Weather</button>
 </nav>
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 
 <script src="src/directory.js"></script>
 <script src="src/birdseed.js"></script>
+<script src="src/birdwatch.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>
