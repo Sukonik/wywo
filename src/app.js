@@ -17,18 +17,16 @@
   var KEY_UI = 'wywo.ui', KEY_DRAFT = 'wywo.draft', KEY_SAVED = 'wywo.saved';
 
   var EXAMPLE = {
-    forWho: '', urgent: false, date: today(), time: nowTime(),
-    caller: 'Cian O’Brien', company: 'OCS Development Group', phone: '646-331-2205', alt: '',
+    forWho: 'Law Staff', urgent: false, date: today(), time: nowTime(),
+    caller: 'Phil Gordon', company: 'SWA Development Corp', phone: '516-787-9090', alt: 'pgordon@swadevelopment.co · 646-898-0560',
     methods: ['Telephoned', 'Please call'],
-    reason: 'Cian was transferred by the City of Long Beach Building Department.',
-    topics: 'Industrial Zone / Zoning\nBuilding Permits\nMercantile License',
-    action: 'Please return Cian’s call regarding the above matters.',
+    reason: 'Phil wants to speak with Law Staff.',
+    topics: 'Industrial Zone\nDevelopment of 4 retail sites\nDevelopment of 2 residential sites',
+    action: 'Please call Phil back after 3 pm.',
+    extra: 'Prefers calls after 3 pm. Can also be reached by email or SMS.',
     refs: [
-      { title: 'OCS Development Group', detail: 'New York real estate development and investment company.', url: 'https://www.linkedin.com/company/ocs-development-group' },
-      { title: 'City of Long Beach — Building Department', detail: '516-431-1005', url: 'https://www.longbeachny.gov/building' },
-      { title: 'City Clerk — Mercantile Licensing', detail: '516-431-1002', url: 'https://www.longbeachny.gov/business' }
+      { title: 'SWA Development Corp', detail: 'Company website', url: 'https://swadevelopment.co' }
     ],
-    extra: '',
     signed: ''
   };
 
@@ -317,7 +315,7 @@
   // Sorts plain words into fields. NOTHING is thrown away: whatever can't be
   // categorised lands in `reason` (if empty) or `extra` (Additional notes).
   function parseQuick(t) {
-    var o = {}, refs = [], rest = '\n' + String(t).replace(/\r/g, '') + '\n', cats = 0;
+    var o = {}, refs = [], rest = '\n' + String(t).replace(/\r/g, '').replace(/\s+(?:--+|[—–])\s+/g, '. ') + '\n', cats = 0;
     function take(re, fn) { var m = rest.match(re); if (m) { fn(m); rest = rest.replace(m[0], ' '); cats++; } return !!m; }
     var CAP = "[A-Z][\\w’'.-]*";
     var cap2 = function (re) { return new RegExp(re.replace(/CAP/g, CAP)); };
@@ -335,13 +333,18 @@
     urls.forEach(function (u) { u = u.replace(/[.,;:!?]+$/, ''); rest = rest.replace(u, ' '); cats++;
       refs.push({ title: u.replace(/^https?:\/\/(www\.)?/i, '').split('/')[0], detail: '', url: /^www\./i.test(u) ? 'https://' + u : u }); });
 
-    // 3. email, phones, time, urgent
+    // 3. email, bare domains, phones, time, urgent
     take(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, function (m) { o.alt = o.alt ? o.alt + ' · ' + m[0] : m[0]; });
+    (rest.match(/\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:com|net|org|co|io|gov|us|biz|info|edu)\b/gi) || []).forEach(function (d) {
+      rest = rest.replace(d, ' '); cats++; if (!refs.some(function (r) { return r.url === 'https://' + d; })) refs.push({ title: d, detail: '', url: 'https://' + d }); });
+    rest = rest.replace(/\b(?:web\s*site|site|domain)(?:\s+name)?\s*[:=]?\s*(?=[.,;]|\s*$)/gi, ' ');
     var phones = rest.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?:\s*(?:x|ext\.?)\s*\d+)?/g) || [];
-    phones.forEach(function (p, i) { rest = rest.replace(p, ' '); cats++; var c = p.trim().replace(/^\+?1[\s.-]/, '');
+    phones.forEach(function (p, i) { rest = rest.replace(p, ' | '); cats++; var c = p.trim().replace(/^\+?1[\s.-]/, '').replace(/^\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})(.*)$/, function (m, a, b, d, tail) { return a + '-' + b + '-' + d + tail; });
       if (i === 0 && !o.phone) o.phone = c; else o.alt = o.alt ? o.alt + ' · ' + c : c; });
-    take(/\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?\b/i, function (m) {
-      var h = +m[1] % 12 + (/p/i.test(m[3]) ? 12 : 0); o.time = pad(h) + ':' + (m[2] || '00'); });
+    (function () {
+      var m = rest.match(/\b(?:(after|before|until|by|around|from|between)\s+)?(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?\b/i);
+      if (m && !m[1]) { var h = +m[2] % 12 + (/p/i.test(m[4]) ? 12 : 0); o.time = pad(h) + ':' + (m[3] || '00'); rest = rest.replace(m[0], ' '); cats++; }
+    })();
     take(/\b(?:very\s+)?(?:urgent(?:ly)?|asap|emergency)\b[!.]*/i, function () { o.urgent = true; });
 
     // 4. transfer + topics + callback wording
@@ -354,15 +357,27 @@
       take(/\b(?:asking|calling|call(?:ed)?|phoned|wondering)?\s*\babout\s+([^,.;\n]+)/i, function (m) { o.topics = m[1]; });
     if (o.topics) o.topics = o.topics.split(/\s*(?:,|;|\band\b|\+|&|\n)\s*/i).map(function (x) { return x.trim().replace(/\.$/, ''); })
       .filter(Boolean).map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join('\n');
+    var spoke = '';
+    take(/\b(?:wants?|would\s+like|asked?)\s+to\s+(?:speak|talk)\s+(?:to|with)\s+(?:the\s+)?([^,.;\n|]+)/i, function (m) { spoke = m[1].trim().replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); });
+    rest = rest.replace(/\b(?:and\s+)?(?:(?:web\s*site|site|domain)(?:\s+name)?|e-?mail(?:\s+address)?)\s*(?:is|:|=)\s*/gi, ' ')
+      .replace(/\b(?:and\s+)?(?:is\s+)?also\s+(?:reachable|available)\s*(?:at|on)?\s*/gi, ' ');
+    var prefs = [];
+    for (var pm; (pm = rest.match(/\b(?:prefers?|best\s+(?:time|way)|can\s+be\s+reached)\b[^.\n]*/i));) { prefs.push(pm[0].trim().replace(/^./, function (c) { return c.toUpperCase(); }).replace(/\s+/g, ' ')); rest = rest.replace(pm[0], ' '); cats++; }
+    rest = rest.replace(/\b(?:also\s+)?(?:reachable|available)\s*(?:at|on)?\s*(?=[.|,]|\s*$)/gi, ' ');
+
     // 5. people & places
     if (!o.forWho) take(cap2('\\b(?:message|note|call)\\s+for\\s+(CAP(?:\\s+CAP)?)'), function (m) { o.forWho = m[1]; });
-    if (!o.caller) take(cap2('^\\s*(?:(?:call|message)\\s+from\\s+|(?:got\\s+a\\s+call\\s+from\\s+))?(CAP(?:\\s+CAP){0,2}?)(?=\\s*(?:,|\\bfrom\\b|\\bwith\\b|\\bat\\b|\\bof\\b|\\bcalled\\b|\\bwas\\b|\\bwith\\b|[.\\n]|$))'), function (m) { o.caller = m[1]; });
+    if (!o.caller) take(cap2('^\\s*(?:(?:call|message|note)\\s+(?:from\\s+)?|(?:got\\s+a\\s+call\\s+from\\s+))?(CAP(?:\\s+CAP){0,2}?)(?=\\s*(?:,|\\||\\bfrom\\b|\\bwith\\b|\\bat\\b|\\bof\\b|\\bcalled\\b|\\bwas\\b|\\bwith\\b|[.\\n]|$))'), function (m) { o.caller = m[1]; });
     if (!o.company) take(cap2('\\b(?:from|with|of|at|calling\\s+for)\\s+(CAP(?:\\s+(?:CAP|&|and\\s+CAP))*)'), function (m) { o.company = m[1].replace(/\s+(?:and|&)$/, ''); });
 
-    if (!o.company && o.caller) take(cap2('^[\\s,\\-–—(]+(CAP(?:\\s+(?:CAP|&))*)\\s*(?=[,.;)\\n]|\\s+(?:or|and|called|\\d))'), function (m) { o.company = m[1].trim(); });
+    if (!o.company && o.caller) take(cap2('^[\\s,|\\-–—(]+(CAP(?:\\s+(?:CAP|&))*)\\s*(?=[,.;)\\n]|\\s+(?:or|and|called|\\d))'), function (m) { o.company = m[1].trim(); });
+
+    if (spoke && !o.forWho) o.forWho = spoke;
+    if (prefs.length) o.extra = ((o.extra ? o.extra + '\n' : '') + prefs.join('. ').replace(/\.?$/, '.'));
 
     // 6. compose the sentences we can
     var who = o.caller ? first(o.caller) : 'Caller';
+    if (spoke && !o.reason) o.reason = who + ' wants to speak with ' + spoke + '.';
     if (tr && !o.reason) o.reason = who + ' was transferred by the ' + tr.replace(/^the\s+/i, '') + '.';
     else if (tr) o.extra = ((o.extra ? o.extra + '\n' : '') + 'Transferred by the ' + tr.replace(/^the\s+/i, '') + '.');
     if (again) o.methods = ['Telephoned', 'Will call again'];
@@ -371,9 +386,9 @@
 
     // 7. leftovers: never lose anything
     rest = rest.replace(/\b(?:or|and)?\s*(?:(?:her|his|their|my)\s+)?(?:cell|fax|e-?mail|mobile|phone|number|website|site|see|at|is|called|phoned|calling)\s*(?:is|:)?\s*(?=[,.;]|\s*$)/gi, ' ');
-    var left = rest.replace(/[ \t]+/g, ' ').split('\n').map(function (l) { return l.replace(/^[\s,;:.\-–—]+|[\s,;:\-–—]+$/g, '').trim(); })
+    var left = rest.replace(/[ \t]+/g, ' ').split('\n').map(function (l) { return l.replace(/^[\s,;:.|\-–—]+|[\s,;:|\-–—]+$/g, '').trim(); })
       .filter(function (l) { return l.length > 1 && !/^(?:and|the|a|to|re|for|from|with|at|of|by)$/i.test(l); }).join('\n');
-    left = left.replace(/(?:\s*[,;]\s*){2,}/g, ', ').replace(/\s+,/g, ',').replace(/^[\s,;:.]+|[\s,;:]+$/g, '');
+    left = left.replace(/(?:\s*[,;.|]\s*){2,}/g, ', ').replace(/\s+,/g, ',').replace(/\s*\|\s*/g, ' ').replace(/^[\s,;:.]+|[\s,;:.]+$/g, '');
     if (left) { if (!o.reason) o.reason = left; else o.extra = (o.extra ? o.extra + '\n' : '') + left; }
     if (refs.length) o.refs = refs;
     o.__cats = cats;

@@ -141,9 +141,9 @@
     var e = emailIn(s.alt); if (e && !FREE.test(e.split('@')[1])) known.push(e.split('@')[1].toLowerCase());
     (s.refs || []).forEach(function (r) { var m = String(r.url || '').match(/^https?:\/\/(?:www\.)?([^\/?#]+)/i); if (m && !/(linkedin|facebook|google|wikipedia|longbeachny\.gov)/i.test(m[1])) known.push(m[1].toLowerCase()); });
     var cand = [];
-    slugVariants(companyHint(s)).forEach(function (v) { ['com', 'net', 'org'].forEach(function (t) { cand.push(v + '.' + t); }); });
+    slugVariants(companyHint(s)).forEach(function (v) { ['com', 'co', 'net', 'org'].forEach(function (t) { cand.push(v + '.' + t); }); });
     if (known.length) cand = [];
-    cand = cand.filter(function (d) { return known.indexOf(d) < 0; }).slice(0, 9);
+    cand = cand.filter(function (d) { return known.indexOf(d) < 0; }).slice(0, 12);
     ctx._dom = Promise.all(cand.map(function (d) {
       return Promise.all([dns(ctx, d, 'A'), dns(ctx, d, 'MX')]).then(function (r) { return { domain: d, web: !!(r[0] && r[0].length), mail: !!(r[1] && r[1].length), net: r[0] !== null }; });
     })).then(function (rows) { return { known: known, guesses: rows.filter(function (r) { return r.web || r.mail; }), offline: rows.length > 0 && rows.every(function (r) { return !r.net; }) }; });

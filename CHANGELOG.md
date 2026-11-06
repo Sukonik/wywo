@@ -2,6 +2,13 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.3.1] — 2026-11-06 🧪
+### Changed
+- New sample call: Phil Gordon · SWA Development Corp · swadevelopment.co (fictional data), used by **Example** and the Quick type hint
+### Improved
+- ⚡ Quick type: bare websites (`swadevelopment.co`) become references; “wants to speak to Law Staff” fills *For* and *Reason*; “prefers calls after 3pm / can be reached by email or SMS” go to *Additional notes* (and no longer overwrite the call time); bare 10-digit phones are formatted; `--` separators understood
+- 🌼 Safflower also tries `.co` domains
+
 ## [0.3.0] — 2026-11-06 🐦
 ### Added
 - 🐦 **Bird Seed**: pick any or all of 8 seeds and review suggested details before they go into the note
