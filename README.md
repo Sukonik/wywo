@@ -7,7 +7,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.2.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -35,31 +35,29 @@ Every emoji in the app and this README means the same thing everywhere.
 |---|---|---|
 | 📞 | The call / the note itself | Title, Markdown export |
 | ⚡ | **Quick type** — plain words → filled form | Top card in the app |
-| 🔎 | **Look up** missing details | Lookup card |
-| 🏢 | Company info (adds a reference) | Lookup button |
-| ☎ | Phone lookup — who called / find a number | Lookup button |
-| 🏛 | Agency / municipal office for a topic | Lookup buttons |
-| ↺ | Fill from a previous call | Lookup button |
+| 🐦 | **Bird Seed** — suggest details for the note | Quick type bar |
+| 🌰 | Select all seeds | Bird Seed |
+| 🌻🌾⚫🌼🌿🥜🌽🌱 | The 8 seeds: name · phone · email · websites · LinkedIn · city departments · company profile · past calls | Bird Seed |
 | ＋ | Add a reference or item | Buttons |
 | 🖨️ | Export PDF / Print | Preview toolbar |
 | 💾 | Save note (on this device only) | Saved notes |
 | 🌗 | Light / dark mode | Header |
 | 🗂 | Saved notes drawer | Header |
 | ✨ | Organize — sort what you typed into fields | Quick type |
-| 🐦 | Bluebird UI themes | Header swatches |
+| 🎨 | Bluebird UI themes | Theme menu |
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
 | 🚨 | Urgent call | Urgent flag (red badge) |
 | ✅ | Checked call type (Telephoned, Please call…) | Classic slip |
 
-**Quick workflow:** ⚡ type it → 🔎 fill the gaps → 🖨️ export → 💾 save.
+**Quick workflow:** ⚡ type it → 🐦 Bird Seed the gaps → 🖨️ export → 💾 save.
 
 ## ✨ What it does
 
 | | |
 |---|---|
 | ⚡ **Quick type** | Type or paste the call in plain words — *"Cian O'Brien from OCS Development Group 646-331-2205, transferred by the Building Department, re: zoning, permits, mercantile license"* — and the form fills itself. **Nothing is dropped:** anything that can't be sorted goes into *Additional notes* and prints with the note. |
-| 🔎 **Look up missing details** | One or two clicks: fill from a previous call, company info (adds a reference), Google / LinkedIn, "who called this number?", and agency-office searches per topic for your city, each with a **＋ ref** button to drop it into the note. |
+| 🐦 **Bird Seed** | Press **Bird Seed**, tick the seeds you want (or **Select all**), and review suggested details for your note. See below. |
 | 🖨️ **Export PDF / Print** | Pick **Full page**, **Pad slip (4¼ × 5½ in)** or **2 per sheet**, press *Export PDF / Print*, choose **Save as PDF** (or your printer). |
 | 🗒️ **Four views** | **Note**, **Vintage** slip that mirrors the paper pad, **Plain text**, and **Markdown** — copy or download any of them. |
 | 💾 **Saved notes** | Notes are saved locally in your browser (nothing is uploaded). Re-open or delete them any time. |
@@ -139,12 +137,34 @@ Every new version is shipped automatically:
 - *Settings → Pages → Source:* **GitHub Actions**
 - *Settings → Actions → General → Workflow permissions:* **Read and write**, and tick **Allow GitHub Actions to create and approve pull requests**
 
+## 🐦 Bird Seed
+
+Bird Seed reads your note and **suggests details to add**. Pick any seeds (or select them all), press **🌱 Scatter seeds**, then tick what you want. Ticked items are written into the right place: fields, *Additional notes*, or *References*, so they print with the note. Nothing is added until you press **Add**, and **guesses are never pre-ticked**.
+
+| Seed | Does | How it works |
+|---|---|---|
+| 🌻 **Sunflower** | Full name | Fixes capitalisation (`cian o'brien` → `Cian O’Brien`), completes a first name from an email like `first.last@…`, or from an earlier call |
+| 🌾 **Millet** | Phone check | Standard `###-###-####` format, area-code region (NY area codes built in), flags short, invalid or reserved-for-fiction `555-01xx` numbers. It can’t tell who owns the line |
+| ⚫ **Nyjer** | Email | Confirms an email’s domain accepts mail (public DNS). With no email, proposes likely addresses on the company’s verified mail domain, marked as guesses |
+| 🌼 **Safflower** | Websites | Tries sensible domains for the company and keeps only ones that exist. Confirm it’s the right company |
+| 🌿 **Hemp** | LinkedIn | Company page guess plus LinkedIn company and people search links (LinkedIn can’t be checked from the browser) |
+| 🥜 **Peanut** | City departments | **Verified Long Beach, NY directory**: matches your topics (zoning, permits, mercantile license, taxes, water…) to departments with phone, room and links |
+| 🌽 **Cracked corn** | Company profile | Public summary, HQ and website from Wikidata when the company has an entry |
+| 🌱 **Thistle** | Past calls | How many times they called before, what about, and fills missing details from your saved notes |
+
+Trust labels on every suggestion: **✓ From a source** · **Worked out from your note** · **Guess — confirm first**. Items marked *Opens in a new tab* are search links and aren’t added to the note.
+
+**No keys, no accounts.** Network seeds use free public services (Google public DNS and Wikidata) and say so if you’re offline.
+
+**Long Beach directory:** [`src/directory.js`](src/directory.js) holds each department’s phone, room and link, copied from the department’s own page on longbeachny.gov (checked 2026-11-06). City numbers change, so re-check before relying on them. Add or edit departments there.
+
 ## 🏷️ Versions & updates
 
-Current version: **0.2.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+Current version: **0.3.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
 
 | Version | Highlights |
 |---|---|
+| **0.3.0** | 🐦 **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls — you tick what goes in your note |
 | **0.2.0** | ✨ Calmer Keep × Apple Notes layout, nothing lost in Quick type (leftovers → Additional notes), clean calligraphy Vintage slip, larger text by default |
 | **0.1.0** | 🚀 First release: Bluebird UI (8 themes), ⚡ Quick type, 🔎 lookups, 🖨️ PDF layouts, 🔄 auto-publish |
 
@@ -152,7 +172,7 @@ Current version: **0.2.0**. Every merge to `main` publishes automatically, and t
 
 ## 🔒 Privacy
 
-Everything runs in your browser. Drafts and saved notes live in `localStorage`. The only network calls are the optional lookup buttons (links open in a new tab; *Company info* queries Wikipedia). Always verify looked-up details before relying on them.
+Everything runs in your browser. Drafts and saved notes live in `localStorage`. The only network calls are the optional Bird Seed lookups (Google public DNS and Wikidata); only the company name or email domain is sent, never the whole note. Always verify looked-up details before relying on them.
 
 ## 🗂️ Project layout
 
@@ -161,7 +181,9 @@ index.html            app shell
 bluebird-ui/          design system (tokens, 8 themes, components)
 src/app.css           app layout + print styles
 assets/logo.svg      logo (replace this file with your own)
-src/app.js            form, quick-type parser, lookups, renderers, export
+src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
+src/birdseed.js       Bird Seed engine (8 seeds)
+src/directory.js      verified Long Beach, NY department directory
 .github/workflows/    auto-merge + Pages publish
 ```
 
