@@ -199,6 +199,7 @@ footer { text-align: center; color: var(--bb-text-3); font-size: 13px; padding: 
 #printArea { display: none; }
 .pa-sheet { display: grid; gap: 0; }
 .pa-sheet.two { grid-template-columns: 1fr 1fr; gap: .4in; align-items: start; }
+.pa-sheet .note, .pa-sheet .slip { max-width: none; margin: 0; }
 @media print {
   body > *:not(#printArea) { display: none !important; }
   body { background: #fff; color: #000; }

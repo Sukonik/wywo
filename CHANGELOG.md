@@ -5,6 +5,8 @@ All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semv
 ## [0.5.1] — 2026-11-06 🧼
 ### Changed
 - Header shows just the logo and “WYWO” (removed the “While You Were Out” subtitle)
+### Fixed
+- 🖨️ Printing: every layout (Full page, Pad slip, 2 per sheet) now auto-fits **one page**, even with Extra large text and long notes (the Pad slip used to spill onto 2–3 pages)
 ### Added
 - 🕰️ Website version history with screenshots of v1–v5 in the README (`docs/history/`)
 
