@@ -16,10 +16,8 @@ body { background: var(--bb-bg); }
 .brand { display: flex; align-items: center; gap: .65rem; text-decoration: none; color: inherit; }
 .brand__mark { width: 46px; height: 46px; color: var(--bb-primary); flex: none; transition: color .2s, transform .25s; }
 .brand:hover .brand__mark { transform: rotate(-6deg) translateY(-1px); }
-.brand__txt { display: grid; line-height: 1.05; }
-.brand__name { font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
-.brand__sub { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--bb-text-3); }
-@media (max-width: 520px) { .brand__sub { display: none; } .brand__mark { width: 40px; height: 40px; } }
+.brand__name { font-weight: 800; font-size: 22px; letter-spacing: -.02em; line-height: 1; }
+@media (max-width: 520px) { .brand__mark { width: 40px; height: 40px; } }
 .foot__mark { width: 18px; height: 18px; color: var(--bb-primary); vertical-align: -4px; margin-right: .25rem; }
 .note__brand { display: flex; align-items: center; gap: .55em; }
 .note__mark { width: 2.3em; height: 2.3em; color: var(--bb-primary); flex: none; }
