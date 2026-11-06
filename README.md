@@ -1,13 +1,15 @@
 <div align="center">
 
-# 📞 WYWO — While You Were Out
+<img src="assets/icons/bluebird/mark.svg" alt="WYWO bluebird logo" width="120">
+
+# WYWO — While You Were Out
 
 **Turn a quick phone call into a clear, detailed, printable callback note.**
 Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.3.1-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -45,6 +47,7 @@ Every emoji in the app and this README means the same thing everywhere.
 | 🗂 | Saved notes drawer | Header |
 | ✨ | Organize — sort what you typed into fields | Quick type |
 | 🎨 | Bluebird UI themes | Theme menu |
+| 🪶 | The WYWO bluebird logo & themed icons | Header, tab, home screen |
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
 | 🚨 | Urgent call | Urgent flag (red badge) |
@@ -164,12 +167,35 @@ Trust labels on every suggestion: **✓ From a source** · **Worked out from you
 
 **Long Beach directory:** [`src/directory.js`](src/directory.js) holds each department’s phone, room and link, copied from the department’s own page on longbeachny.gov (checked 2026-11-06). City numbers change, so re-check before relying on them. Add or edit departments there.
 
+## 🪶 Icons 2.0
+
+The WYWO bluebird (a pen-nib wing and paper-fold tail) is one recolourable mark that takes on every Bluebird UI theme.
+
+| Where | What |
+|---|---|
+| Header, footer, printed note | Inline logo in the current theme colour |
+| Browser tab | `assets/icons/<theme>/favicon.svg` — switches with your theme, lighter in dark browser tabs |
+| Safari / older browsers | `favicon-16.png`, `favicon-32.png`, root `favicon.ico` (Night-Heron uses a dark tile so it never vanishes on a dark tab) |
+| Phone home screen | `apple-touch-icon.png` and `icon-192/512.png` per theme, plus `site.webmanifest` |
+| Browser toolbar colour | `theme-color` follows theme + light/dark |
+
+👀 **See them all:** [`assets/icons/index.html`](assets/icons/index.html) (live: https://sukonik.github.io/wywo/assets/icons/)
+
+**Rebuild** after changing the logo (source SVGs live in [`assets/logo/`](assets/logo/)):
+
+```bash
+node tools/build-icons.js
+```
+
+Logo guidelines (from the starter kit): keep one eye-width of clear space; use the simplified favicon below 48 px; no outlines, gradients or shadows on small sizes.
+
 ## 🏷️ Versions & updates
 
-Current version: **0.3.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+Current version: **0.4.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
 
 | Version | Highlights |
 |---|---|
+| **0.4.0** | 🪶 **Icons 2.0**: the WYWO bluebird logo, themed favicons / app icons for all 8 birds, installable web-app manifest |
 | **0.3.1** | 🧪 New sample call (Phil Gordon, SWA Development Corp); Quick type understands “wants to speak to…”, preferences like “after 3pm”, and bare websites |
 | **0.3.0** | 🐦 **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls — you tick what goes in your note |
 | **0.2.0** | ✨ Calmer Keep × Apple Notes layout, nothing lost in Quick type (leftovers → Additional notes), clean calligraphy Vintage slip, larger text by default |
@@ -187,7 +213,10 @@ Everything runs in your browser. Drafts and saved notes live in `localStorage`. 
 index.html            app shell
 bluebird-ui/          design system (tokens, 8 themes, components)
 src/app.css           app layout + print styles
-assets/logo.svg      logo (replace this file with your own)
+assets/logo/          logo source SVGs (mark, favicon, app icon)
+assets/icons/         generated themed icons for the 8 themes (+ index.html board)
+tools/build-icons.js  regenerates the icons from assets/logo
+favicon.ico, favicon.svg, apple-touch-icon.png, site.webmanifest   site-wide defaults
 src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
 src/birdseed.js       Bird Seed engine (8 seeds)
 src/directory.js      verified Long Beach, NY department directory

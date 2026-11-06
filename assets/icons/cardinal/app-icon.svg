@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">WYWO Cardinal app icon</title>
+  <rect width="512" height="512" rx="112" fill="#c4112f"/>
+  <g transform="translate(46 57) scale(.82)" style="color:#ffffff">
+    <defs>
+      <mask id="app-cutouts">
+        <rect width="512" height="512" fill="white"/>
+        <circle cx="382" cy="217" r="11" fill="black"/>
+        <path d="M220 267C251 226 291 203 339 195" fill="none" stroke="black" stroke-width="11" stroke-linecap="round"/>
+        <path d="M276 115L270 178" fill="none" stroke="black" stroke-width="8" stroke-linecap="round"/>
+        <path d="M269 179L280 190L269 201L258 190Z" fill="black"/>
+      </mask>
+    </defs>
+    <g fill="currentColor" mask="url(#app-cutouts)">
+      <path d="M198 289C194 236 213 164 276 92C310 127 336 159 351 194C319 197 287 209 260 229C234 248 213 269 198 289Z"/>
+      <path d="M183 300L52 257L130 326L55 383L194 357C220 397 267 421 319 416C388 409 434 355 436 280L480 257L437 245C429 194 389 157 336 156C274 155 224 195 210 252C201 270 192 286 183 300Z"/>
+    </g>
+  </g>
+</svg>
