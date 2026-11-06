@@ -281,7 +281,7 @@
     setTimeout(function () { window.print(); }, 350);
   });
   $('#exampleBtn').addEventListener('click', function () { state = JSON.parse(JSON.stringify(EXAMPLE)); writeForm(); update(); toast('Example loaded'); });
-  $('#clearBtn').addEventListener('click', function () { state = blank(); $('#quick').value = ''; writeForm(); update(); renderLookups(); $('#quick').focus(); });
+  $('#clearBtn').addEventListener('click', function () { state = blank(); $('#quick').value = ''; writeForm(); update(); $('#quick').focus(); });
 
   /* ---------------- Saved notes ---------------- */
   var saved = load(KEY_SAVED, []);
@@ -309,7 +309,7 @@
   });
   $('#saved').addEventListener('click', function (e) {
     var o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]');
-    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); writeForm(); update(); renderLookups(); closeDrawer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); writeForm(); update(); closeDrawer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     if (d) { saved.splice(+d.dataset.del, 1); store(KEY_SAVED, saved); renderSaved(); }
   });
 
@@ -387,60 +387,100 @@
       if (k === 'refs') { p.refs.forEach(function (r) { if (!state.refs.some(function (x) { return x.url === r.url; })) state.refs.push(r); }); n += p.refs.length; return; }
       state[k] = p[k]; n++;
     });
-    writeForm(); update(); renderLookups(); toast('Organized — ' + n + ' fields filled. Check the note, edit anything.');
+    writeForm(); update(); toast('Organized — ' + n + ' fields filled. Check the note, edit anything.');
   }
   $('#quickBtn').addEventListener('click', runQuick);
   $('#quick').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuick(); });
 
-  /* ---------------- Lookups ---------------- */
-  var cityEl = $('#city'); cityEl.value = ui.city || '';
-  function g(q) { return 'https://www.google.com/search?q=' + encodeURIComponent(q); }
-  function digits(p) { return String(p || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, ''); }
-  function previous() {
-    var d = digits(state.phone), c = (state.caller || '').trim().toLowerCase();
-    return saved.filter(function (n) { return (d && digits(n.data.phone) === d) || (c && (n.data.caller || '').trim().toLowerCase() === c); })[0];
+  /* ---------------- 🐦 Bird Seed ---------------- */
+  var dlg = $('#seedDlg'), seedRes = [], cityEl = $('#city');
+  cityEl.value = ui.city == null ? 'Long Beach, NY' : ui.city;
+  cityEl.addEventListener('input', function () { ui.city = cityEl.value; store(KEY_UI, ui); });
+  var picked = ui.seeds || BirdSeed.SEEDS.map(function (x) { return x.id; });
+  var grid = $('#seedGrid');
+  BirdSeed.SEEDS.forEach(function (sd) {
+    var l = document.createElement('label'); l.className = 'seed-card';
+    l.innerHTML = '<input type="checkbox" value="' + sd.id + '"' + (picked.indexOf(sd.id) > -1 ? ' checked' : '') + '><span class="seed-card__e">' + sd.emoji + '</span><span><b>' + esc(sd.name) + '</b> <em>' + esc(sd.does) + '</em><small>' + esc(sd.hint) + '</small></span>';
+    grid.appendChild(l);
+  });
+  function seedBoxes() { return Array.prototype.slice.call(grid.querySelectorAll('input')); }
+  function syncAll() { var b = seedBoxes(); $('#seedAll').checked = b.every(function (x) { return x.checked; }); $('#seedAll').indeterminate = !$('#seedAll').checked && b.some(function (x) { return x.checked; }); ui.seeds = b.filter(function (x) { return x.checked; }).map(function (x) { return x.value; }); store(KEY_UI, ui); $('#scatterBtn').disabled = !ui.seeds.length; }
+  grid.addEventListener('change', syncAll);
+  $('#seedAll').addEventListener('change', function () { var on = this.checked; seedBoxes().forEach(function (x) { x.checked = on; }); syncAll(); });
+  syncAll();
+
+  function seedStep(n) {
+    $('#seedStep1').hidden = n !== 1; $('#seedStep2').hidden = n !== 2;
+    $('#scatterBtn').hidden = n !== 1; $('#seedAdd').hidden = n !== 2; $('#seedBack').hidden = n !== 2;
+    $('#seedSub').textContent = n === 1 ? 'Pick the seeds to scatter. We’ll look at your note and suggest details — you choose what goes in.' : 'Tick what you want in the note. Guesses are never ticked for you.';
   }
-  function renderLookups() {
-    var box = $('#lookups'), btns = [], city = cityEl.value.trim(), s = state;
-    var prev = previous();
-    if (prev) btns.push({ t: '↺ Fill from previous call', run: function () {
-      ['caller', 'company', 'phone', 'alt'].forEach(function (k) { if (!state[k]) state[k] = prev.data[k] || ''; });
-      if (!state.refs.length) state.refs = JSON.parse(JSON.stringify(prev.data.refs || []));
-      writeForm(); update(); toast('Filled from ' + new Date(prev.at).toLocaleDateString()); } });
-    if (s.company) {
-      btns.push({ t: '🏢 Company info → add reference', run: function () { companyInfo(s.company); } });
-      btns.push({ t: 'Google company', href: g(s.company + (city ? ' ' + city : '')) });
-      btns.push({ t: 'LinkedIn', href: 'https://www.linkedin.com/search/results/companies/?keywords=' + encodeURIComponent(s.company) });
+  function openSeed() { readForm(); seedStep(1); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
+  function closeSeed() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  $('#birdBtn').addEventListener('click', openSeed);
+  $('#seedClose').addEventListener('click', closeSeed);
+  $('#seedBack').addEventListener('click', function () { seedStep(1); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) closeSeed(); });
+
+  var TRUST = { verified: ['✓ From a source', 'tr tr--v'], derived: ['Worked out from your note', 'tr tr--d'], guess: ['Guess — confirm first', 'tr tr--g'] };
+  function sgRow(x, i) {
+    var t = x.apply.kind === 'link' ? ['Opens in a new tab', 'tr tr--d'] : (TRUST[x.trust] || TRUST.derived);
+    var lead = x.apply.kind === 'link' ? '<a class="bb-btn bb-btn--sm" href="' + esc(x.apply.url) + '" target="_blank" rel="noopener noreferrer">Open ↗</a>' : '<input type="checkbox" data-i="' + i + '"' + (x.checked ? ' checked' : '') + ' aria-label="Add: ' + esc(x.label) + '">';
+    return '<label class="sg">' + lead + '<span class="sg__t"><b>' + esc(x.label) + '</b><span class="sg__v">' + esc(x.value) + '</span><small><span class="' + t[1] + '">' + t[0] + '</span>' + (x.source ? ' · ' + esc(x.source) : '') + '</small></span></label>';
+  }
+  function renderSeedResults() {
+    var n = 0, html = '';
+    seedRes.forEach(function (r) {
+      html += '<section class="sgrp"><h3>' + r.seed.emoji + ' ' + esc(r.seed.name) + ' <em>' + esc(r.seed.does) + '</em></h3>';
+      if (r.pending) html += '<p class="bb-hint">🌱 Looking…</p>';
+      else {
+        if (r.message) html += '<p class="bb-hint">' + esc(r.message) + '</p>';
+        html += r.suggestions.map(function (x) { var i = r.all.indexOf(x); n += x.checked ? 1 : 0; return sgRow(x, i); }).join('');
+      }
+      html += '</section>';
+    });
+    $('#seedResults').innerHTML = html;
+    updateAddBtn();
+  }
+  function updateAddBtn() { var c = $('#seedResults').querySelectorAll('input[type=checkbox]:checked').length; $('#seedAdd').textContent = c ? 'Add ' + c + ' to my note' : 'Nothing ticked'; $('#seedAdd').disabled = !c; }
+  $('#seedResults').addEventListener('change', function (e) { var i = e.target.dataset.i; if (i != null && window.__seedAll) window.__seedAll[i].checked = e.target.checked; updateAddBtn(); });
+
+  $('#scatterBtn').addEventListener('click', function () {
+    readForm();
+    var ids = ui.seeds.slice(); if (!ids.length) return;
+    seedRes = ids.map(function (id) { return { seed: BirdSeed.SEEDS.filter(function (x) { return x.id === id; })[0], pending: true, suggestions: [] }; });
+    window.__seedAll = []; seedStep(2); renderSeedResults();
+    BirdSeed.scatter(ids, { state: JSON.parse(JSON.stringify(state)), saved: saved, city: cityEl.value }, function (r) {
+      var slot = seedRes.filter(function (x) { return x.seed.id === r.seed.id; })[0];
+      slot.pending = false; slot.message = r.message; slot.suggestions = r.suggestions; slot.all = window.__seedAll;
+      r.suggestions.forEach(function (x) { window.__seedAll.push(x); });
+      renderSeedResults();
+    });
+  });
+
+  function applySg(a) {
+    var cur;
+    if (a.kind === 'field') {
+      cur = state[a.field] || '';
+      if (a.mode === 'ifEmpty' && cur) return 0;
+      if (a.mode === 'append') { if (cur.toLowerCase().indexOf(a.value.toLowerCase()) > -1) return 0; state[a.field] = cur ? cur + ' · ' + a.value : a.value; return 1; }
+      if (cur === a.value) return 0; state[a.field] = a.value; return 1;
     }
-    if (s.phone) btns.push({ t: '☎ Who called this number?', href: g('"' + s.phone + '"') });
-    else if (s.caller) btns.push({ t: '☎ Find ' + first(s.caller) + '’s number', href: g(s.caller + ' ' + (s.company || '')) });
-    var topics = lines(s.topics);
-    topics.slice(0, 6).forEach(function (tp) {
-      btns.push({ t: '🏛 ' + (city ? city.split(',')[0] + ': ' : '') + tp, href: g((city ? city + ' ' : '') + tp + ' office phone number'),
-        add: { title: (city ? city.split(',')[0] + ' — ' : '') + tp, detail: '', url: '' } });
-    });
-    box.innerHTML = '';
-    if (!btns.length) { box.innerHTML = '<span class="bb-hint">Add a caller, company, phone or topics and lookup buttons appear here.</span>'; return; }
-    btns.forEach(function (b) {
-      var el = document.createElement(b.href ? 'a' : 'button'); el.className = 'bb-btn bb-btn--sm'; el.textContent = b.t;
-      if (b.href) { el.href = b.href; el.target = '_blank'; el.rel = 'noopener noreferrer'; } else { el.type = 'button'; el.addEventListener('click', b.run); }
-      box.appendChild(el);
-      if (b.add) { var a = document.createElement('button'); a.type = 'button'; a.className = 'bb-btn bb-btn--sm bb-btn--ghost'; a.textContent = '＋ ref'; a.title = 'Add as a reference to fill in';
-        a.addEventListener('click', function () { readForm(); state.refs.push(b.add); renderRefs(); update(); toast('Reference added — paste the number'); }); box.appendChild(a); }
-    });
+    if (a.kind === 'ref') {
+      if (state.refs.some(function (r) { return (a.url && r.url === a.url) || (a.title && r.title === a.title); })) return 0;
+      state.refs.push({ title: a.title, detail: a.detail || '', url: a.url || '' }); return 1;
+    }
+    if (a.kind === 'extra') {
+      if ((state.extra || '').indexOf(a.text) > -1) return 0;
+      state.extra = (state.extra ? state.extra + '\n' : '') + a.text; return 1;
+    }
+    return 0;
   }
-  function companyInfo(q) {
-    var msg = $('#lookupMsg'); msg.textContent = 'Looking up “' + q + '”…';
-    fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(q) + '&gsrlimit=1&prop=extracts%7Cinfo&exintro=1&explaintext=1&exsentences=2&inprop=url&format=json&origin=*')
-      .then(function (r) { return r.json(); }).then(function (j) {
-        var pg = j.query && Object.values(j.query.pages)[0];
-        if (!pg || !pg.extract) { msg.textContent = 'No public summary found — try the Google / LinkedIn buttons.'; return; }
-        readForm(); state.refs.push({ title: q, detail: pg.extract.trim(), url: pg.fullurl }); renderRefs(); update();
-        msg.textContent = 'Added a reference from Wikipedia ("' + pg.title + '"). Check it is the right company.';
-      }).catch(function () { msg.textContent = 'Lookup unavailable offline — use the Google / LinkedIn buttons.'; });
-  }
-  cityEl.addEventListener('input', function () { ui.city = cityEl.value; store(KEY_UI, ui); renderLookups(); });
-  var _renderPane = renderPane; renderPane = function () { _renderPane(); renderLookups(); };
+  $('#seedAdd').addEventListener('click', function () {
+    readForm(); var n = 0;
+    (window.__seedAll || []).forEach(function (x) { if (x.checked && x.apply.kind !== 'link') n += applySg(x.apply); });
+    writeForm(); update(); closeSeed();
+    toast(n ? '🐦 Added ' + n + ' detail' + (n > 1 ? 's' : '') + ' to your note' : 'Nothing new to add');
+  });
 
   /* ---------------- Boot ---------------- */
   if (!Array.isArray(state.refs)) state.refs = [];
