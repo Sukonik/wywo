@@ -2,6 +2,17 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.2.0] — 2026-11-06 ✨
+### Changed
+- 🧹 Redesigned as a calm, Keep × Apple Notes editor: one big quick-type box, soft filled fields, optional details tucked away
+- 🔠 Larger text by default, with Standard / Large / Extra large
+- ✒️ Vintage slip now uses clean calligraphy (Dancing Script) and larger type
+- 🗂 Saved notes moved to a Keep-style drawer; themes in a compact menu
+### Fixed
+- ⚡ Quick type no longer drops data: unsorted text goes to *Additional notes* (shown in Note, Vintage, Text, Markdown and printouts); also picks up links, extra phones, times, "urgent", titles like Dr.
+### Added
+- 🖼 `assets/logo.svg` placeholder for your logo
+
 ## [0.1.0] — 2026-11-06 🚀
 ### Added
 - 📞 WYWO note generator with Modern, Classic slip, Plain text and Markdown views

@@ -28,6 +28,7 @@
       { title: 'City of Long Beach — Building Department', detail: '516-431-1005', url: 'https://www.longbeachny.gov/building' },
       { title: 'City Clerk — Mercantile Licensing', detail: '516-431-1002', url: 'https://www.longbeachny.gov/business' }
     ],
+    extra: '',
     signed: ''
   };
 
@@ -49,7 +50,7 @@
     if (t) { var q = t.split(':'); var dt = new Date(); dt.setHours(+q[0], +q[1]); out += (out ? ' · ' : '') + dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); }
     return out;
   }
-  function first(name) { return String(name || '').trim().split(/\s+/)[0] || 'the caller'; }
+  function first(name) { var w = String(name || '').trim().split(/\s+/); if (/^(?:dr|mr|mrs|ms|mx|prof|judge|mayor|rev|sgt|capt)\.?$/i.test(w[0]) && w[1]) return w[0] + ' ' + w[1]; return w[0] || 'the caller'; }
 
   /* ---------------- State ---------------- */
   var form = $('#form'), pane = $('#pane');
@@ -57,7 +58,7 @@
   var view = 'modern';
 
   function blank() {
-    return { forWho: '', urgent: false, date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', refs: [], signed: '' };
+    return { forWho: '', urgent: false, date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', extra: '', refs: [], signed: '' };
   }
 
   /* ---------------- Theme UI ---------------- */
@@ -71,11 +72,16 @@
   }
   THEMES.forEach(function (t) {
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'bb-swatch'; b.dataset.id = t.id; b.title = t.name; b.setAttribute('aria-label', t.name);
+    b.type = 'button'; b.className = 'bb-swatch'; b.dataset.id = t.id;
+    b.innerHTML = '<span class="dot"></span>' + esc(t.name);
     b.style.setProperty('--c', t.color);
-    b.addEventListener('click', function () { applyTheme(t.id); });
+    b.addEventListener('click', function () { applyTheme(t.id); closePop(); });
     $('#swatches').appendChild(b);
   });
+  function closePop() { $('#themePop').hidden = true; $('#themeBtn').setAttribute('aria-expanded', 'false'); }
+  $('#themeBtn').addEventListener('click', function (e) { e.stopPropagation(); var p = $('#themePop'); p.hidden = !p.hidden; this.setAttribute('aria-expanded', String(!p.hidden)); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.pop-wrap')) closePop(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closePop(); closeDrawer(); } });
   $('#modeBtn').addEventListener('click', function () {
     var el = document.documentElement;
     var dark = el.dataset.mode ? el.dataset.mode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
@@ -83,6 +89,8 @@
     ui.mode = el.dataset.mode; store(KEY_UI, ui);
   });
   applyTheme(document.documentElement.dataset.theme);
+  var sizeSel = $('#sizeSel'); sizeSel.value = document.documentElement.dataset.size || 'l';
+  sizeSel.addEventListener('change', function () { document.documentElement.dataset.size = sizeSel.value; ui.size = sizeSel.value; store(KEY_UI, ui); });
 
   /* ---------------- Form <-> state ---------------- */
   var methodsEl = $('#methods');
@@ -146,10 +154,11 @@
     if (s.methods.length) h += '<div class="chips">' + s.methods.map(function (m) { return '<span class="bb-badge">' + esc(m) + '</span>'; }).join('') + '</div>';
     if (s.reason || topics.length) {
       h += '<div><h3>Reason for call</h3>' + (s.reason ? '<p>' + esc(s.reason) + '</p>' : '');
-      if (topics.length) h += (s.reason ? '<p style="margin-top:.5rem">' + esc(first(s.caller)) + ' has questions concerning:</p>' : '') + '<ul>' + topics.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
+      if (topics.length) h += (s.reason ? '<p style="margin-top:.5em">' + esc(first(s.caller)) + ' has questions concerning:</p>' : '') + '<ul>' + topics.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
       h += '</div>';
     }
     if (s.action) h += '<div><h3>Requested action</h3><p>' + esc(s.action) + '</p></div>';
+    if (s.extra && s.extra.trim()) h += '<div><h3>Additional notes</h3><p>' + esc(s.extra) + '</p></div>';
     var refs = s.refs.filter(function (r) { return r.title || r.detail || r.url; });
     if (refs.length) {
       h += '<div><h3>Relevant reference information</h3>' + refs.map(function (r) {
@@ -165,19 +174,20 @@
 
   function renderClassic(s) {
     var box = function (m) { return '<div><u>' + (s.methods.indexOf(m) > -1 ? '✓' : '') + '</u>' + esc(m.toUpperCase()) + '</div>'; };
-    var msg = [s.reason, lines(s.topics).length ? 'Questions re: ' + lines(s.topics).join(', ') : '', s.action].filter(Boolean).join('\n');
+    var topics = lines(s.topics);
+    var msg = [s.reason, topics.length ? 'Questions re: ' + topics.join(', ') + '.' : '', s.action, s.extra && s.extra.trim(),
+      s.refs.filter(function (r) { return r.title || r.detail; }).map(function (r) { return r.title + (r.detail ? ' — ' + r.detail : ''); }).join('\n')].filter(Boolean).join('\n');
+    var f = function (label, v, extra) { return '<div class="ln"><span class="lbl2">' + label + '</span><span class="hw">' + esc(v) + '</span>' + (extra || '') + '</div>'; };
     return '<div class="slip">' +
-      '<div class="urgent">Urgent <b>' + (s.urgent ? '✓' : '') + '</b></div>' +
-      '<div class="ln"><i>FOR</i><span>' + esc(s.forWho) + '</span></div>' +
-      '<div class="ln"><i>DATE</i><span>' + esc(s.date) + '</span><i>TIME</i><span>' + esc(s.time) + '</span></div>' +
+      '<div class="urgent2"><span class="lbl2">Urgent</span><b>' + (s.urgent ? '✓' : '') + '</b></div>' +
+      f('For', s.forWho) +
+      '<div class="ln"><span class="lbl2">Date</span><span class="hw">' + esc(s.date ? fmtDate(s.date, '') : '') + '</span><span class="lbl2">Time</span><span class="hw" style="flex:.6">' + esc(s.time ? fmtDate('', s.time) : '') + '</span></div>' +
       '<div class="banner">While You Were Out</div>' +
-      '<div class="ln"><i>M</i><span>' + esc(s.caller) + '</span></div>' +
-      '<div class="two"><div><div class="ln"><i>OF</i><span>' + esc(s.company) + '</span></div>' +
-      '<div class="ln"><i>PHONE</i><span>' + esc(s.phone) + '</span></div>' +
-      '<div class="ln"><i>CELL/FAX</i><span>' + esc(s.alt) + '</span></div></div>' +
+      f('M', s.caller) +
+      '<div class="two"><div>' + f('Of', s.company) + f('Phone', s.phone) + f('Cell / Fax', s.alt) + '</div>' +
       '<div class="opts">' + METHODS.map(box).join('') + '</div></div>' +
       '<div class="msg-title">Message</div><div class="lines">' + esc(msg) + '</div>' +
-      '<div class="sign"><span>' + esc(s.signed) + '</span>SIGNED</div></div>';
+      '<div class="sign"><span class="hw">' + esc(s.signed) + '</span><span class="lbl2">Signed</span></div></div>';
   }
 
   function toText(s) {
@@ -195,6 +205,7 @@
       if (topics.length) o.push(first(s.caller) + ' has questions concerning:', '', topics.join('\n'));
     }
     if (s.action) o.push('', '—'.repeat(3), '', 'REQUESTED ACTION', '', s.action);
+    if (s.extra && s.extra.trim()) o.push('', '—'.repeat(3), '', 'ADDITIONAL NOTES', '', s.extra.trim());
     if (refs.length) {
       o.push('', '—'.repeat(3), '', 'RELEVANT REFERENCE INFORMATION');
       refs.forEach(function (r) { o.push('', [r.title, r.detail, r.url].filter(Boolean).join('\n')); });
@@ -216,6 +227,7 @@
       if (topics.length) o.push(first(s.caller) + ' has questions concerning:', '', topics.map(function (t) { return '- ' + t; }).join('\n'));
     }
     if (s.action) o.push('', '### Requested action', '', s.action);
+    if (s.extra && s.extra.trim()) o.push('', '### Additional notes', '', s.extra.trim());
     if (refs.length) {
       o.push('', '### Relevant reference information');
       refs.forEach(function (r) { o.push('', '**' + r.title + '**', [r.detail, r.url].filter(Boolean).join('  \n')); });
@@ -237,9 +249,9 @@
 
   /* ---------------- Tabs ---------------- */
   $('#tabs').addEventListener('click', function (e) {
-    var b = e.target.closest('.bb-tab'); if (!b) return;
+    var b = e.target.closest('.seg__b'); if (!b) return;
     view = b.dataset.view;
-    Array.prototype.forEach.call(document.querySelectorAll('.bb-tab'), function (t) { t.setAttribute('aria-selected', String(t === b)); });
+    Array.prototype.forEach.call(document.querySelectorAll('.seg__b'), function (t) { t.setAttribute('aria-selected', String(t === b)); });
     renderPane();
   });
 
@@ -269,19 +281,26 @@
     setTimeout(function () { window.print(); }, 350);
   });
   $('#exampleBtn').addEventListener('click', function () { state = JSON.parse(JSON.stringify(EXAMPLE)); writeForm(); update(); toast('Example loaded'); });
-  $('#clearBtn').addEventListener('click', function () { state = blank(); writeForm(); update(); });
+  $('#clearBtn').addEventListener('click', function () { state = blank(); $('#quick').value = ''; writeForm(); update(); renderLookups(); $('#quick').focus(); });
 
   /* ---------------- Saved notes ---------------- */
   var saved = load(KEY_SAVED, []);
   function renderSaved() {
     $('#savedCount').textContent = saved.length;
     var box = $('#saved');
-    if (!saved.length) { box.innerHTML = '<p class="empty" style="margin:0">No saved notes yet.</p>'; return; }
+    if (!saved.length) { box.innerHTML = '<p class="empty">No saved notes yet. Press 💾 Save on a note and it appears here.</p>'; return; }
     box.innerHTML = saved.map(function (n, i) {
-      return '<div class="saved__item"><div><b>' + esc(n.data.caller || 'Unnamed caller') + (n.data.urgent ? ' · URGENT' : '') + '</b><small>' + esc(n.data.company || '—') + ' · ' + esc(new Date(n.at).toLocaleString()) + '</small></div>' +
-        '<button class="bb-btn bb-btn--sm" data-open="' + i + '">Open</button><button class="bb-btn bb-btn--sm bb-btn--ghost bb-btn--danger" data-del="' + i + '" aria-label="Delete note">✕</button></div>';
+      var d = n.data, snip = d.reason || lines(d.topics).join(', ') || d.extra || '';
+      return '<div class="saved__item"><b>' + esc(d.caller || 'Unnamed caller') + (d.urgent ? ' 🚨' : '') + '</b><small>' + esc(d.company || '—') + ' · ' + esc(new Date(n.at).toLocaleString()) + '</small>' +
+        (snip ? '<p>' + esc(snip) + '</p>' : '') +
+        '<div class="saved__act"><button class="bb-btn bb-btn--sm" data-open="' + i + '">Open</button><button class="bb-btn bb-btn--sm bb-btn--ghost bb-btn--danger" data-del="' + i + '">Delete</button></div></div>';
     }).join('');
   }
+  function openDrawer() { $('#drawer').hidden = false; $('#scrim').hidden = false; $('#notesBtn').setAttribute('aria-expanded', 'true'); }
+  function closeDrawer() { $('#drawer').hidden = true; $('#scrim').hidden = true; $('#notesBtn').setAttribute('aria-expanded', 'false'); }
+  $('#notesBtn').addEventListener('click', function () { $('#drawer').hidden ? openDrawer() : closeDrawer(); });
+  $('#drawerClose').addEventListener('click', closeDrawer);
+  $('#scrim').addEventListener('click', closeDrawer);
   $('#saveBtn').addEventListener('click', function () {
     readForm();
     if (!state.caller && !state.reason) { toast('Add a caller or reason first'); return; }
@@ -290,38 +309,85 @@
   });
   $('#saved').addEventListener('click', function (e) {
     var o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]');
-    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); writeForm(); update(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); writeForm(); update(); renderLookups(); closeDrawer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     if (d) { saved.splice(+d.dataset.del, 1); store(KEY_SAVED, saved); renderSaved(); }
   });
 
   /* ---------------- Quick type: plain words -> fields ---------------- */
+  // Sorts plain words into fields. NOTHING is thrown away: whatever can't be
+  // categorised lands in `reason` (if empty) or `extra` (Additional notes).
   function parseQuick(t) {
-    var o = {}, txt = t.trim();
-    // "key: value" lines win
-    var keyed = { caller: /^(?:caller|name)\s*:\s*(.+)$/im, company: /^(?:company|org|from)\s*:\s*(.+)$/im, phone: /^(?:phone|tel|cell)\s*:\s*(.+)$/im, forWho: /^for\s*:\s*(.+)$/im, reason: /^(?:reason|why)\s*:\s*(.+)$/im, action: /^(?:action|please)\s*:\s*(.+)$/im };
-    Object.keys(keyed).forEach(function (k) { var m = txt.match(keyed[k]); if (m) o[k] = m[1].trim(); });
-    var ph = txt.match(/(\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/);
-    if (!o.phone && ph) o.phone = ph[1].trim().replace(/^\+?1[\s.-]/, '');
-    var em = txt.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/); if (em) o.alt = em[0];
-    var flat = txt.replace(/\n+/g, ', ');
-    var cap = "[A-Z][\\w’'.-]*";
-    if (!o.caller) { var nm = flat.match(new RegExp('^(?:(?:call|message)\\s+(?:from|for)\\s+)?(' + cap + '(?:\\s+' + cap + '){0,2})')); if (nm) o.caller = nm[1]; }
-    if (!o.company) { var co = flat.match(new RegExp('\\b(?:from|with|of|at|calling for)\\s+(' + cap + '(?:\\s+(?:' + cap + '|&|and\\s+' + cap + '))*)')); if (co && co[1] !== o.caller) o.company = co[1].replace(/\s+(?:and|&)$/, ''); }
-    var tr = flat.match(/transferred\s+(?:by|from)\s+(?:the\s+)?([^,.;]+)/i);
-    if (!o.reason && tr) o.reason = (o.caller ? first(o.caller) : 'Caller') + ' was transferred by the ' + tr[1].replace(/^the\s+/i, '').trim() + '.';
-    var tp = flat.match(/(?:re:|regarding|about|concerning|questions?\s+(?:on|about|concerning)|wants to know about)\s*(.+)$/i);
-    if (tp) o.topics = tp[1].split(/\s*(?:,|;|\band\b|\+|&)\s*/i).map(function (x) { return x.trim().replace(/\.$/, ''); }).filter(Boolean).map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join('\n');
-    if (/\b(urgent|asap|emergency)\b/i.test(txt)) o.urgent = true;
-    if (/\bwill call (?:you )?again\b/i.test(txt)) o.methods = ['Telephoned', 'Will call again'];
-    else if (/\b(please )?call (?:back|him|her|them)|callback|return (?:the |his |her )?call\b/i.test(txt) || o.caller) o.methods = ['Telephoned', 'Please call'];
-    if (!o.action && o.caller) o.action = 'Please return ' + first(o.caller) + (/’s|\'s/.test(first(o.caller)) ? '' : '’s') + ' call' + (o.topics ? ' regarding the above matters.' : '.');
+    var o = {}, refs = [], rest = '\n' + String(t).replace(/\r/g, '') + '\n', cats = 0;
+    function take(re, fn) { var m = rest.match(re); if (m) { fn(m); rest = rest.replace(m[0], ' '); cats++; } return !!m; }
+    var CAP = "[A-Z][\\w’'.-]*";
+    var cap2 = function (re) { return new RegExp(re.replace(/CAP/g, CAP)); };
+
+    // 1. explicit "label: value" lines
+    [['caller', /^[ \t]*(?:caller|name)[ \t]*:[ \t]*(.+)$/im], ['company', /^[ \t]*(?:company|org|organization)[ \t]*:[ \t]*(.+)$/im],
+     ['phone', /^[ \t]*(?:phone|tel|telephone)[ \t]*:[ \t]*(.+)$/im], ['alt', /^[ \t]*(?:cell|fax|email|e-mail)[ \t]*:[ \t]*(.+)$/im],
+     ['forWho', /^[ \t]*for[ \t]*:[ \t]*(.+)$/im], ['reason', /^[ \t]*(?:reason|why)[ \t]*:[ \t]*(.+)$/im],
+     ['action', /^[ \t]*(?:action|request)[ \t]*:[ \t]*(.+)$/im], ['extra', /^[ \t]*notes?[ \t]*:[ \t]*(.+)$/im],
+     ['topics', /^[ \t]*(?:topics?|re|regarding|about)[ \t]*:[ \t]*(.+)$/im]]
+      .forEach(function (kv) { take(kv[1], function (m) { o[kv[0]] = m[1].trim(); }); });
+
+    // 2. links -> references
+    var urls = rest.match(/(?:https?:\/\/|www\.)[^\s,;)]+/gi) || [];
+    urls.forEach(function (u) { u = u.replace(/[.,;:!?]+$/, ''); rest = rest.replace(u, ' '); cats++;
+      refs.push({ title: u.replace(/^https?:\/\/(www\.)?/i, '').split('/')[0], detail: '', url: /^www\./i.test(u) ? 'https://' + u : u }); });
+
+    // 3. email, phones, time, urgent
+    take(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, function (m) { o.alt = o.alt ? o.alt + ' · ' + m[0] : m[0]; });
+    var phones = rest.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?:\s*(?:x|ext\.?)\s*\d+)?/g) || [];
+    phones.forEach(function (p, i) { rest = rest.replace(p, ' '); cats++; var c = p.trim().replace(/^\+?1[\s.-]/, '');
+      if (i === 0 && !o.phone) o.phone = c; else o.alt = o.alt ? o.alt + ' · ' + c : c; });
+    take(/\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?\b/i, function (m) {
+      var h = +m[1] % 12 + (/p/i.test(m[3]) ? 12 : 0); o.time = pad(h) + ':' + (m[2] || '00'); });
+    take(/\b(?:very\s+)?(?:urgent(?:ly)?|asap|emergency)\b[!.]*/i, function () { o.urgent = true; });
+
+    // 4. transfer + topics + callback wording
+    if (!o.caller) take(/^\s*([A-Za-z][\w’'.-]*(?:\s+[A-Za-z][\w’'.-]*)?)\s+(?:called|phoned|rang|is\s+calling)\b/, function (m) { o.caller = m[1].replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); });
+    var again = take(/\bwill\s+call\s+(?:you\s+)?again\b/i, function () {});
+    var cb = take(/\b(?:(?:wants?|asked?|would\s+like|needs?)\s+(?:someone|somebody|you|us)\s+to\s+)?(?:please\s+)?(?:call|ring|phone)\s+(?:him|her|them|me|back)(?:\s+back)?\b|\bcall\s?back\b|\breturn\s+(?:the\s+|his\s+|her\s+|their\s+)?call\b/i, function () {});
+    var tr = '';
+    take(/\b(?:was\s+|were\s+)?transferred\s+(?:by|from)\s+(?:the\s+)?([^,.;\n]+)/i, function (m) { tr = m[1].trim(); });
+    if (!o.topics && !take(/(?:\bre\s*:|\bregarding\b|\bconcerning\b|\bquestions?\s+(?:on|about|regarding|concerning)\b|\bwants?\s+to\s+know\s+about\b)\s*([^\n]+?)(?=\.(?:\s|$)|\n|$)/i, function (m) { o.topics = m[1]; }))
+      take(/\b(?:asking|calling|call(?:ed)?|phoned|wondering)?\s*\babout\s+([^,.;\n]+)/i, function (m) { o.topics = m[1]; });
+    if (o.topics) o.topics = o.topics.split(/\s*(?:,|;|\band\b|\+|&|\n)\s*/i).map(function (x) { return x.trim().replace(/\.$/, ''); })
+      .filter(Boolean).map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join('\n');
+    // 5. people & places
+    if (!o.forWho) take(cap2('\\b(?:message|note|call)\\s+for\\s+(CAP(?:\\s+CAP)?)'), function (m) { o.forWho = m[1]; });
+    if (!o.caller) take(cap2('^\\s*(?:(?:call|message)\\s+from\\s+|(?:got\\s+a\\s+call\\s+from\\s+))?(CAP(?:\\s+CAP){0,2}?)(?=\\s*(?:,|\\bfrom\\b|\\bwith\\b|\\bat\\b|\\bof\\b|\\bcalled\\b|\\bwas\\b|\\bwith\\b|[.\\n]|$))'), function (m) { o.caller = m[1]; });
+    if (!o.company) take(cap2('\\b(?:from|with|of|at|calling\\s+for)\\s+(CAP(?:\\s+(?:CAP|&|and\\s+CAP))*)'), function (m) { o.company = m[1].replace(/\s+(?:and|&)$/, ''); });
+
+    if (!o.company && o.caller) take(cap2('^[\\s,\\-–—(]+(CAP(?:\\s+(?:CAP|&))*)\\s*(?=[,.;)\\n]|\\s+(?:or|and|called|\\d))'), function (m) { o.company = m[1].trim(); });
+
+    // 6. compose the sentences we can
+    var who = o.caller ? first(o.caller) : 'Caller';
+    if (tr && !o.reason) o.reason = who + ' was transferred by the ' + tr.replace(/^the\s+/i, '') + '.';
+    else if (tr) o.extra = ((o.extra ? o.extra + '\n' : '') + 'Transferred by the ' + tr.replace(/^the\s+/i, '') + '.');
+    if (again) o.methods = ['Telephoned', 'Will call again'];
+    else if (cb || o.caller || o.phone) o.methods = ['Telephoned', 'Please call'];
+    if (!o.action && (cb || o.caller)) o.action = 'Please return ' + who + (/s$/i.test(who) ? '’' : '’s') + ' call' + (o.topics ? ' regarding the above matters.' : '.');
+
+    // 7. leftovers: never lose anything
+    rest = rest.replace(/\b(?:or|and)?\s*(?:(?:her|his|their|my)\s+)?(?:cell|fax|e-?mail|mobile|phone|number|website|site|see|at|is|called|phoned|calling)\s*(?:is|:)?\s*(?=[,.;]|\s*$)/gi, ' ');
+    var left = rest.replace(/[ \t]+/g, ' ').split('\n').map(function (l) { return l.replace(/^[\s,;:.\-–—]+|[\s,;:\-–—]+$/g, '').trim(); })
+      .filter(function (l) { return l.length > 1 && !/^(?:and|the|a|to|re|for|from|with|at|of|by)$/i.test(l); }).join('\n');
+    left = left.replace(/(?:\s*[,;]\s*){2,}/g, ', ').replace(/\s+,/g, ',').replace(/^[\s,;:.]+|[\s,;:]+$/g, '');
+    if (left) { if (!o.reason) o.reason = left; else o.extra = (o.extra ? o.extra + '\n' : '') + left; }
+    if (refs.length) o.refs = refs;
+    o.__cats = cats;
     return o;
   }
   function runQuick() {
     var t = $('#quick').value; if (!t.trim()) { toast('Type something first'); return; }
     readForm(); var p = parseQuick(t), n = 0;
-    Object.keys(p).forEach(function (k) { state[k] = p[k]; n++; });
-    writeForm(); update(); renderLookups(); toast('Filled ' + n + ' fields — review & edit');
+    Object.keys(p).forEach(function (k) {
+      if (k === '__cats') return;
+      if (k === 'refs') { p.refs.forEach(function (r) { if (!state.refs.some(function (x) { return x.url === r.url; })) state.refs.push(r); }); n += p.refs.length; return; }
+      state[k] = p[k]; n++;
+    });
+    writeForm(); update(); renderLookups(); toast('Organized — ' + n + ' fields filled. Check the note, edit anything.');
   }
   $('#quickBtn').addEventListener('click', runQuick);
   $('#quick').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuick(); });
@@ -382,5 +448,5 @@
   writeForm(); renderSaved(); renderPane();
 
   // expose for tests
-  window.__wywo = { toText: toText, toMarkdown: toMarkdown, EXAMPLE: EXAMPLE };
+  window.__wywo = { toText: toText, toMarkdown: toMarkdown, parseQuick: parseQuick, EXAMPLE: EXAMPLE };
 })();

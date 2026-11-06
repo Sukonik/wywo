@@ -7,7 +7,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -44,6 +44,8 @@ Every emoji in the app and this README means the same thing everywhere.
 | 🖨️ | Export PDF / Print | Preview toolbar |
 | 💾 | Save note (on this device only) | Saved notes |
 | 🌗 | Light / dark mode | Header |
+| 🗂 | Saved notes drawer | Header |
+| ✨ | Organize — sort what you typed into fields | Quick type |
 | 🐦 | Bluebird UI themes | Header swatches |
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
@@ -56,11 +58,13 @@ Every emoji in the app and this README means the same thing everywhere.
 
 | | |
 |---|---|
-| ⚡ **Quick type** | Type or paste the call in plain words — *"Cian O'Brien from OCS Development Group 646-331-2205, transferred by the Building Department, re: zoning, permits, mercantile license"* — and the form fills itself. |
+| ⚡ **Quick type** | Type or paste the call in plain words — *"Cian O'Brien from OCS Development Group 646-331-2205, transferred by the Building Department, re: zoning, permits, mercantile license"* — and the form fills itself. **Nothing is dropped:** anything that can't be sorted goes into *Additional notes* and prints with the note. |
 | 🔎 **Look up missing details** | One or two clicks: fill from a previous call, company info (adds a reference), Google / LinkedIn, "who called this number?", and agency-office searches per topic for your city, each with a **＋ ref** button to drop it into the note. |
 | 🖨️ **Export PDF / Print** | Pick **Full page**, **Pad slip (4¼ × 5½ in)** or **2 per sheet**, press *Export PDF / Print*, choose **Save as PDF** (or your printer). |
-| 🗒️ **Four views** | **Modern** note, **Classic slip** that mirrors the paper pad, **Plain text**, and **Markdown** — copy or download any of them. |
+| 🗒️ **Four views** | **Note**, **Vintage** slip that mirrors the paper pad, **Plain text**, and **Markdown** — copy or download any of them. |
 | 💾 **Saved notes** | Notes are saved locally in your browser (nothing is uploaded). Re-open or delete them any time. |
+| 🔠 **Large, readable text** | Large by default (Standard / Large / Extra large), applied to every view and printout. The Vintage slip uses a clean calligraphy hand (Dancing Script) instead of scratchy handwriting. |
+| 🗂 **Notes drawer** | Saved notes as simple cards, one click to reopen. |
 | 🌗 **Light / dark + 8 themes** | Responsive from phone to desktop. |
 
 ### Example output
@@ -137,10 +141,11 @@ Every new version is shipped automatically:
 
 ## 🏷️ Versions & updates
 
-Current version: **0.1.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+Current version: **0.2.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
 
 | Version | Highlights |
 |---|---|
+| **0.2.0** | ✨ Calmer Keep × Apple Notes layout, nothing lost in Quick type (leftovers → Additional notes), clean calligraphy Vintage slip, larger text by default |
 | **0.1.0** | 🚀 First release: Bluebird UI (8 themes), ⚡ Quick type, 🔎 lookups, 🖨️ PDF layouts, 🔄 auto-publish |
 
 **Releasing a new version:** bump the version in this README and [`CHANGELOG.md`](CHANGELOG.md), push to a `claude/**` branch (or open a PR to `main`) and the Publish workflow does the rest.
@@ -155,6 +160,7 @@ Everything runs in your browser. Drafts and saved notes live in `localStorage`. 
 index.html            app shell
 bluebird-ui/          design system (tokens, 8 themes, components)
 src/app.css           app layout + print styles
+assets/logo.svg      logo (replace this file with your own)
 src/app.js            form, quick-type parser, lookups, renderers, export
 .github/workflows/    auto-merge + Pages publish
 ```
