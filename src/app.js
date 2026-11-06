@@ -66,7 +66,7 @@
   function applyTheme(id) {
     var t = THEMES.filter(function (x) { return x.id === id; })[0] || THEMES[0];
     document.documentElement.dataset.theme = t.id;
-    $('#themeLabel').textContent = t.name;
+    $('#themeLabel').textContent = t.name; $('#themeDot').style.background = t.color;
     Array.prototype.forEach.call(document.querySelectorAll('.bb-swatch'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === t.id)); });
     ui.theme = t.id; store(KEY_UI, ui);
     syncChrome();
@@ -81,20 +81,38 @@
     b.type = 'button'; b.className = 'bb-swatch'; b.dataset.id = t.id;
     b.innerHTML = '<span class="dot"></span>' + esc(t.name);
     b.style.setProperty('--c', t.color);
-    b.addEventListener('click', function () { applyTheme(t.id); closePop(); });
+    b.addEventListener('click', function () { applyTheme(t.id); });
     $('#swatches').appendChild(b);
   });
-  function closePop() { $('#themePop').hidden = true; $('#themeBtn').setAttribute('aria-expanded', 'false'); }
-  $('#themeBtn').addEventListener('click', function (e) { e.stopPropagation(); var p = $('#themePop'); p.hidden = !p.hidden; this.setAttribute('aria-expanded', String(!p.hidden)); });
-  document.addEventListener('click', function (e) { if (!e.target.closest('.pop-wrap')) closePop(); });
+  var isMobile = function () { return matchMedia('(max-width: 760px)').matches; };
+  // Mount the menu at page level: the header's blur would otherwise become the anchor for fixed children and push the sheet off-screen.
+  document.body.appendChild($('#popScrim')); document.body.appendChild($('#themePop'));
+  function placePop() {
+    var p = $('#themePop');
+    if (isMobile()) { p.style.top = p.style.right = ''; return; }
+    var r = $('#themeBtn').getBoundingClientRect(); p.style.top = Math.round(r.bottom + 8) + 'px'; p.style.right = Math.max(8, Math.round(innerWidth - r.right - 8)) + 'px';
+  }
+  window.addEventListener('resize', function () { if (!$('#themePop').hidden) { placePop(); $('#popScrim').hidden = !isMobile(); } });
+  function openPop() { $('#themePop').hidden = false; $('#themeBtn').setAttribute('aria-expanded', 'true'); placePop(); if (isMobile()) $('#popScrim').hidden = false; }
+  function closePop() { $('#themePop').hidden = true; $('#popScrim').hidden = true; $('#themeBtn').setAttribute('aria-expanded', 'false'); }
+  $('#themeBtn').addEventListener('click', function (e) { e.stopPropagation(); $('#themePop').hidden ? openPop() : closePop(); });
+  $('#popClose').addEventListener('click', closePop);
+  $('#popScrim').addEventListener('click', closePop);
+  document.addEventListener('click', function (e) { if (!e.target.closest('.pop-wrap, #themePop')) closePop(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closePop(); closeDrawer(); } });
-  $('#modeBtn').addEventListener('click', function () {
-    var el = document.documentElement;
-    var dark = el.dataset.mode ? el.dataset.mode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    el.dataset.mode = dark ? 'light' : 'dark';
-    ui.mode = el.dataset.mode; store(KEY_UI, ui); syncChrome();
-  });
+  /* light / dark / auto */
+  function effDark() { var el = document.documentElement; return el.dataset.mode ? el.dataset.mode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; }
+  function setMode(m) {
+    var el = document.documentElement; if (m === 'auto') delete el.dataset.mode; else el.dataset.mode = m;
+    ui.mode = m; store(KEY_UI, ui); syncChrome();
+    Array.prototype.forEach.call(document.querySelectorAll('#modeSeg button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
+    var d = effDark(); $('#modeBtn').textContent = d ? '☀️' : '🌙'; $('#modeBtn').setAttribute('aria-label', d ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  $('#modeBtn').addEventListener('click', function () { setMode(effDark() ? 'light' : 'dark'); });
+  $('#modeSeg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { if (!document.documentElement.dataset.mode) setMode('auto'); });
   applyTheme(document.documentElement.dataset.theme);
+  setMode(ui.mode || 'auto');
 
   /* App icon (favicon + touch icon) — six tree icons, Cedar by default */
   var TREES = [
@@ -102,6 +120,7 @@
     { id: 'maple', name: 'Maple', tip: 'Crimson & burnt-orange leaves' }, { id: 'hazelnut', name: 'Hazelnut', tip: 'Hazel brown, cream & olive' },
     { id: 'linden', name: 'Linden', tip: 'Luminous green heart-leaf' }, { id: 'beech', name: 'Beech', tip: 'Copper leaves & silver bark' }
   ];
+  var forest = 'cedar';
   function applyIcon(id) {
     var t = TREES.filter(function (x) { return x.id === id; })[0] || TREES[0], d = 'assets/icons/' + t.id + '/';
     var dflt = t.id === 'cedar';
@@ -109,15 +128,18 @@
     $('#fav16').href = dflt ? 'favicon-16x16.png' : d + 'favicon-16.png';
     $('#appleIcon').href = dflt ? 'apple-touch-icon.png' : d + 'apple-touch-icon.png';
     Array.prototype.forEach.call(document.querySelectorAll('.icon-btn'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === t.id)); });
+    forest = t.id; Array.prototype.forEach.call(document.querySelectorAll('use.art-ref'), function (u) { u.setAttribute('href', '#' + (u.dataset.kind === 'strip' ? 'strip' : 'art') + '-' + t.id); });
     ui.icon = t.id; store(KEY_UI, ui);
   }
   TREES.forEach(function (t) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'icon-btn'; b.dataset.id = t.id; b.title = t.name + ' — ' + t.tip;
     b.innerHTML = '<img src="assets/icons/' + t.id + '/favicon-48.png" alt="" width="44" height="44">' + esc(t.name);
-    b.addEventListener('click', function () { applyIcon(t.id); toast(t.name + ' icon selected'); });
+    b.addEventListener('click', function () { applyIcon(t.id); toast('🌲 ' + t.name + ' forest'); if (view === 'modern') renderPane(); });
     $('#icons').appendChild(b);
   });
   applyIcon(ui.icon || 'cedar');
+  var artToggle = $('#artToggle'); artToggle.checked = ui.art !== false; document.documentElement.dataset.art = artToggle.checked ? 'on' : 'off';
+  artToggle.addEventListener('change', function () { ui.art = artToggle.checked; store(KEY_UI, ui); document.documentElement.dataset.art = ui.art ? 'on' : 'off'; });
   var sizeSel = $('#sizeSel'); sizeSel.value = document.documentElement.dataset.size || 'l';
   sizeSel.addEventListener('change', function () { document.documentElement.dataset.size = sizeSel.value; ui.size = sizeSel.value; store(KEY_UI, ui); });
 
@@ -172,7 +194,7 @@
   /* ---------------- Renderers ---------------- */
   function renderModern(s) {
     var tel = telHref(s.phone), topics = lines(s.topics);
-    var h = '<article class="note">';
+    var h = '<article class="note"><svg class="note__art" viewBox="0 0 320 200" aria-hidden="true"><use class="art-ref" href="#art-' + forest + '"/></svg>';
     h += '<div class="note__top"><div class="note__brand"><svg class="note__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg><div><div class="note__kicker">While You Were Out</div><div class="note__title">Callback request</div></div></div>' +
       '<div class="note__meta">' + (s.urgent ? '<span class="bb-badge bb-badge--danger">URGENT</span><br>' : '') +
       '<div class="note__for">Call is for <span class="for-badge' + (String(s.forWho || '').trim() ? '' : ' for-badge--team') + '">' + esc(forLabel(s)) + '</span></div>' + esc(fmtDate(s.date, s.time)) + '</div></div>';
@@ -342,7 +364,7 @@
   function renderSaved() {
     $('#savedCount').textContent = saved.length;
     var box = $('#saved');
-    if (!saved.length) { box.innerHTML = '<p class="empty">No saved notes yet. Press 💾 Save on a note and it appears here.</p>'; return; }
+    if (!saved.length) { box.innerHTML = '<div class="empty-art"><svg viewBox="0 0 320 200" aria-hidden="true"><use class="art-ref" href="#art-' + forest + '"/></svg><p>No saved notes yet.<br>Press <b>💾 Save</b> on a note and it appears here.</p></div>'; return; }
     box.innerHTML = saved.map(function (n, i) {
       var d = n.data, snip = d.reason || lines(d.topics).join(', ') || d.extra || '';
       return '<div class="saved__item"><b>' + esc(d.caller || 'Unnamed caller') + (d.urgent ? ' 🚨' : '') + '</b><small>' + esc(d.company || '—') + ' · ' + esc(new Date(n.at).toLocaleString()) + '</small>' +
@@ -508,7 +530,7 @@
   function seedStep(n) {
     $('#seedStep1').hidden = n !== 1; $('#seedStep2').hidden = n !== 2;
     $('#scatterBtn').hidden = n !== 1; $('#seedAdd').hidden = n !== 2; $('#seedBack').hidden = n !== 2;
-    $('#seedSub').textContent = n === 1 ? 'Pick the seeds to scatter. Bird Seed looks things up and asks before adding anything.' : 'Here’s what we found. Tick what you want added to the note. Guesses are never ticked for you.';
+    $('#seedSub').textContent = n === 1 ? '' : 'Here’s what we found. Tick what you want added to the note. Guesses are never ticked for you.'; $('#seedSub').hidden = n === 1;
   }
   function openSeed() { readForm(); seedStep(1); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
   function closeSeed() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
@@ -577,6 +599,16 @@
     writeForm(); update(); closeSeed();
     toast(n ? '🐦 Added ' + n + ' detail' + (n > 1 ? 's' : '') + ' to your note' : 'Nothing new to add');
   });
+
+  /* ---------------- Mobile: Edit / Preview switch ---------------- */
+  function setPane(p) {
+    document.body.dataset.pane = p;
+    Array.prototype.forEach.call(document.querySelectorAll('.mnav [data-pane]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.pane === p)); });
+    window.scrollTo(0, 0);
+  }
+  $('.mnav').addEventListener('click', function (e) { var b = e.target.closest('[data-pane]'); if (b) setPane(b.dataset.pane); });
+  $('#mBird').addEventListener('click', openSeed);
+  document.body.dataset.pane = 'edit';
 
   /* ---------------- Boot ---------------- */
   if (!Array.isArray(state.refs)) state.refs = [];

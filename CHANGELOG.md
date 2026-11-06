@@ -2,6 +2,19 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.8.0] — 2026-11-06 🌲
+### Added
+- 🌲 **Forest line-art themes**: Cedar, Pine, Maple, Hazelnut, Linden, Beech. Each sets the app icon **and** a clean line illustration, drawn in the current colour theme (quick-card banner, note corner, Bird Seed window, empty states; also printed). Can be switched off
+- 🎛 New **Appearance** menu: Light / Dark / Auto, colour theme, forest, line-art switch
+- 📱 **Mobile redesign**: Edit / Preview / Bird Seed bottom bar, Appearance and Bird Seed as bottom sheets, 44 px touch targets, stacked export buttons, cleaner header
+- 🛠 `tools/build-art.js` and `tools/build-favicons.sh`
+### Fixed
+- 🪟 Favicons now have **transparent rounded corners** (Chrome showed white corners); all six trees, `.ico`, 16/32/48/192/512
+- Appearance menu was rendered off-screen on phones (a header blur trapped it); now mounted at page level
+- Quick card hint no longer wraps into a skinny column; note date/“Call is for” aligned on phones
+- Printing: phone-layout padding added a blank 2nd page; all 12 layout/size combos print on exactly one page
+- Publish: `deploy-pages` waits up to 30 min (the 10 min default timed out twice)
+
 ## [0.7.0] — 2026-11-06 🐦
 ### Changed (Bird Seed 2.0)
 - 🐦 Bird Seed now **looks up real information and asks before adding it**. Ten seeds: 🌻 Sunflower (name) · 🌱 Thistle (past calls) · 🌽 Cracked Corn (company profile) · 🎃 Pumpkin (phone) · 🌾 Flax (email) · 🥬 Kale (website) · 🍉 Watermelon (LinkedIn & social) · 🌶️ Pepper (city departments) · 🥒 Cucumber (address) · 🍈 Honeydew (company summary)

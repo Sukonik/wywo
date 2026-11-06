@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.7.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.8.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -47,9 +47,11 @@ Every emoji in the app and this README means the same thing everywhere.
 | 🌗 | Light / dark mode | Header |
 | 🗂 | Saved notes drawer | Header |
 | ✨ | Organize — sort what you typed into fields | Quick type |
-| 🎨 | Bluebird UI themes | Theme menu |
+| 🎨 | Bluebird UI colour themes | Appearance menu |
 | 🪶 | The WYWO bluebird logo | Header, footer, printed note |
-| 🌲 | App icon (Cedar, Pine, Maple, Hazelnut, Linden, Beech) | Tab, home screen, Theme → App icon |
+| 🌲 | **Forest** (Cedar, Pine, Maple, Hazelnut, Linden, Beech): app icon + line art | Appearance menu |
+| ☀️ 🌙 | Light / dark mode (or Auto) | Header, Appearance menu |
+| ✏️ 👁 | Edit / Preview switch on phones | Bottom bar |
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
 | 🚨 | Urgent call | Urgent flag (red badge) |
@@ -196,31 +198,53 @@ The website seeds (🌻 🎃 🌾 🥬 🍉 🥒 🍈) read the company’s own 
 - LinkedIn can’t be read directly, so LinkedIn results come from links on the company’s own site; otherwise you get a guess plus search links.
 - Always glance at **see source ↗** for anything you’re going to rely on.
 
-## 🌲 Favicons 2.0 & logo
+## 🌲 Forests, icons & logo
 
-The WYWO bluebird (pen-nib wing, paper-fold tail) is the brand mark. It appears in the header, footer and printed note, recoloured by the colour theme.
+The WYWO bluebird (pen-nib wing, paper-fold tail) is the brand mark in the header, footer and printed note, recoloured by the colour theme.
 
-Six botanical app icons wrap the same black bluebird: **Cedar** (default), **Pine**, **Maple**, **Hazelnut**, **Linden**, **Beech**.
+### Appearance menu (header, next to 🗂 Notes)
+| Setting | What it does |
+|---|---|
+| ☀️ **Mode** | Light · Dark · Auto (follows your device). The ☀️/🌙 header button flips it quickly |
+| 🎨 **Colour theme** | The 8 Bluebird UI birds |
+| 🌲 **Forest** | Six forests: **Cedar** (default), **Pine**, **Maple**, **Hazelnut**, **Linden**, **Beech**. Each sets the **app icon** (tab + home screen) **and** a clean **line illustration** of that tree |
+| 🖼 **Show forest line art** | Turn the illustrations off for a plain look |
 
+The line art is drawn in the **current colour theme**, so any bird theme × any forest gives a different look. It appears as a banner on the quick card, a corner flourish on the note (and printout), the Bird Seed window, and empty states.
+
+### App icons
 | Where | What |
 |---|---|
-| Browser tab | `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` (Cedar by default) |
+| Browser tab | `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` (Cedar by default) with **transparent rounded corners**, so no white corners in Chrome |
 | Phone home screen | `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest` |
-| Pick another icon | **Theme menu → App icon**. It changes the tab and home-screen icon and is remembered on this device |
 | All six, every size | [`assets/icons/<tree>/`](assets/icons/) (16 · 32 · 48 · `.ico` · 180 touch · 192 · 512) |
 
 👀 **See them all:** [`assets/icons/index.html`](assets/icons/index.html) (live: https://sukonik.github.io/wywo/assets/icons/)
 
-The icons already include their own rounded styling, so don’t add borders or shadows. iOS applies its own mask: test on a device before an App Store release (the 1024 px Cedar source is `assets/icons/cedar/app-icon-1024.png`). The logo’s source SVGs are in [`assets/logo/`](assets/logo/).
+**Rebuild:**
+```bash
+node tools/build-art.js                       # line illustrations → index.html + assets/art/
+tools/build-favicons.sh <extracted icon zip>  # transparent-corner favicons for all six trees
+```
+iOS applies its own rounded mask to `apple-touch-icon.png`, so that one stays opaque; test on a device before an App Store release (Cedar 1024 px source: `assets/icons/cedar/app-icon-1024.png`). Logo source SVGs: [`assets/logo/`](assets/logo/).
+
+## 📱 Mobile
+
+Built phone-first, with the same features as desktop:
+- **✏️ Edit / 👁 Preview / 🐦 Bird Seed** bar at the bottom: one pane at a time, no endless scrolling
+- **Appearance menu and Bird Seed open as bottom sheets** you can reach with a thumb (tap outside or ✕ to close)
+- **Thumb-sized targets** (44 px+) for every button, and form text at 16 px+ so iOS never zooms in
+- Header trimmed to the logo plus three icon buttons; export buttons stacked full-width on the Preview pane
 
 ## 🕰️ Website version history
 
-How the site has grown: seven releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
+How the site has grown: eight releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.7.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.7.0 · build a1b2c3d`).
+Current version: **0.8.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.8.0 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|
+| <img src="docs/history/v8.jpg" width="420" alt="v8"> | **v8 · 0.8.0** 🌲<br>Forests & mobile | **Forest line-art themes** (Cedar, Pine, Maple, Hazelnut, Linden, Beech) in a new **Appearance** menu, a full **mobile redesign** (bottom-sheet menus, Edit / Preview bar, thumb-sized buttons), favicons with **transparent corners**, one-page printing kept |
 | <img src="docs/history/v7.jpg" width="420" alt="v7"> | **v7 · 0.7.0** 🐦<br>Bird Seed 2.0 | Ten real look-up seeds that read the company’s own website (free reader, or **Firecrawl / Crawl4AI / ScrapeGraphAI** with your key), then **ask you** before adding names, phones, emails, websites, LinkedIn, addresses and summaries |
 | <img src="docs/history/v6.jpg" width="420" alt="v6"> | **v6 · 0.6.0** 📞<br>Call is for | **Call is for** always on every note (“Check with team” when unknown), routing phrases in Quick type, 🗑 **Clear all** with an “Are you sure?” checkbox |
 | <img src="docs/history/v5.jpg" width="420" alt="v5"> | **v5 · 0.5.0 – 0.5.1** 🌲<br>Favicons 2.0 | Six botanical tree app icons (🌲 Cedar default, Pine, Maple, Hazelnut, Linden, Beech) with a **Theme → App icon** picker, installable web-app manifest, and a clean “WYWO” header |
@@ -244,6 +268,8 @@ src/app.css           app layout + print styles
 assets/logo/          logo source SVGs (mark, favicon, app icon)
 assets/icons/         six tree icons × every size (+ index.html board)
 favicon*.png / .ico, apple-touch-icon.png, android-chrome-*.png, site.webmanifest   Cedar defaults
+assets/art/           forest line illustrations (also inlined in index.html)
+tools/                build-art.js · build-favicons.sh
 src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
 src/birdseed.js       Bird Seed engine (10 seeds + look-up engines)
 src/directory.js      verified Long Beach, NY department directory
