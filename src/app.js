@@ -48,6 +48,8 @@
     if (t) { var q = t.split(':'); var dt = new Date(); dt.setHours(+q[0], +q[1]); out += (out ? ' · ' : '') + dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); }
     return out;
   }
+  var TEAM = 'Check with team';
+  function forLabel(s) { return String(s.forWho || '').trim() || TEAM; }
   function first(name) { var w = String(name || '').trim().split(/\s+/); if (/^(?:dr|mr|mrs|ms|mx|prof|judge|mayor|rev|sgt|capt)\.?$/i.test(w[0]) && w[1]) return w[0] + ' ' + w[1]; return w[0] || 'the caller'; }
 
   /* ---------------- State ---------------- */
@@ -173,7 +175,7 @@
     var h = '<article class="note">';
     h += '<div class="note__top"><div class="note__brand"><svg class="note__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg><div><div class="note__kicker">While You Were Out</div><div class="note__title">Callback request</div></div></div>' +
       '<div class="note__meta">' + (s.urgent ? '<span class="bb-badge bb-badge--danger">URGENT</span><br>' : '') +
-      (s.forWho ? 'For <b>' + esc(s.forWho) + '</b><br>' : '') + esc(fmtDate(s.date, s.time)) + '</div></div>';
+      '<div class="note__for">Call is for <span class="for-badge' + (String(s.forWho || '').trim() ? '' : ' for-badge--team') + '">' + esc(forLabel(s)) + '</span></div>' + esc(fmtDate(s.date, s.time)) + '</div></div>';
     h += '<div class="note__caller"><span class="name">' + (s.caller ? esc(s.caller) : '<span class="empty">Caller name</span>') + '</span>' +
       (s.company ? '<span class="company">' + esc(s.company) + '</span>' : '') +
       (s.phone ? (tel ? '<a class="note__phone" href="' + esc(tel) + '">' + esc(s.phone) + '</a>' : '<span class="note__phone">' + esc(s.phone) + '</span>') : '') +
@@ -207,7 +209,7 @@
     var f = function (label, v, extra) { return '<div class="ln"><span class="lbl2">' + label + '</span><span class="hw">' + esc(v) + '</span>' + (extra || '') + '</div>'; };
     return '<div class="slip">' +
       '<div class="urgent2"><span class="lbl2">Urgent</span><b>' + (s.urgent ? '✓' : '') + '</b></div>' +
-      f('For', s.forWho) +
+      f('For', forLabel(s)) +
       '<div class="ln"><span class="lbl2">Date</span><span class="hw">' + esc(s.date ? fmtDate(s.date, '') : '') + '</span><span class="lbl2">Time</span><span class="hw" style="flex:.6">' + esc(s.time ? fmtDate('', s.time) : '') + '</span></div>' +
       '<div class="banner">While You Were Out</div>' +
       f('M', s.caller) +
@@ -221,8 +223,9 @@
     var o = [], refs = s.refs.filter(function (r) { return r.title || r.detail || r.url; }), topics = lines(s.topics);
     o.push('WHILE YOU WERE OUT', '');
     o.push(s.urgent ? 'CALLBACK REQUEST — URGENT' : 'CALLBACK REQUEST', '');
-    var meta = [s.forWho && 'FOR: ' + s.forWho, fmtDate(s.date, s.time) && 'DATE: ' + fmtDate(s.date, s.time)].filter(Boolean);
-    if (meta.length) o.push(meta.join('   '), '');
+    o.push('CALL IS FOR: ' + forLabel(s));
+    if (fmtDate(s.date, s.time)) o.push('DATE: ' + fmtDate(s.date, s.time));
+    o.push('');
     o.push('CALLER: ' + s.caller, 'COMPANY: ' + s.company, 'PHONE: ' + s.phone);
     if (s.alt) o.push('ALSO: ' + s.alt);
     if (s.methods.length) o.push('TYPE: ' + s.methods.join(', '));
@@ -244,7 +247,7 @@
   function toMarkdown(s) {
     var o = [], refs = s.refs.filter(function (r) { return r.title || r.detail || r.url; }), topics = lines(s.topics);
     o.push('# 📞 While You Were Out', '', '## Callback request' + (s.urgent ? ' — **URGENT**' : ''), '');
-    if (s.forWho) o.push('**For:** ' + s.forWho + '  ');
+    o.push('**Call is for:** ' + forLabel(s) + '  ');
     if (fmtDate(s.date, s.time)) o.push('**Date:** ' + fmtDate(s.date, s.time) + '  ');
     o.push('**Caller:** ' + s.caller + '  ', '**Company:** ' + s.company + '  ', '**Phone:** ' + s.phone);
     if (s.alt) o.push('', '**Also:** ' + s.alt);
@@ -323,7 +326,16 @@
     setTimeout(function () { window.print(); }, 350);
   });
   $('#exampleBtn').addEventListener('click', function () { state = JSON.parse(JSON.stringify(EXAMPLE)); writeForm(); update(); toast('Example loaded'); });
-  $('#clearBtn').addEventListener('click', function () { state = blank(); $('#quick').value = ''; writeForm(); update(); $('#quick').focus(); });
+  var clearDlg = $('#clearDlg');
+  $('#clearBtn').addEventListener('click', function () { $('#clearSure').checked = false; $('#clearGo').disabled = true; if (clearDlg.showModal) clearDlg.showModal(); else clearDlg.setAttribute('open', ''); });
+  $('#clearSure').addEventListener('change', function () { $('#clearGo').disabled = !this.checked; });
+  $('#clearCancel').addEventListener('click', function () { clearDlg.close ? clearDlg.close() : clearDlg.removeAttribute('open'); });
+  clearDlg.addEventListener('click', function (e) { if (e.target === clearDlg) clearDlg.close(); });
+  $('#clearGo').addEventListener('click', function () {
+    if (!$('#clearSure').checked) return;
+    state = blank(); $('#quick').value = ''; writeForm(); update();
+    clearDlg.close ? clearDlg.close() : clearDlg.removeAttribute('open'); toast('🗑 Cleared. Fresh note ready'); $('#quick').focus();
+  });
 
   /* ---------------- Saved notes ---------------- */
   var saved = load(KEY_SAVED, []);
@@ -410,7 +422,9 @@
     rest = rest.replace(/\b(?:also\s+)?(?:reachable|available)\s*(?:at|on)?\s*(?=[.|,]|\s*$)/gi, ' ');
 
     // 5. people & places
-    if (!o.forWho) take(cap2('\\b(?:message|note|call)\\s+for\\s+(CAP(?:\\s+CAP)?)'), function (m) { o.forWho = m[1]; });
+    if (!o.forWho) take(/\b(?:check\s+with\s+(?:the\s+)?team|for\s+(?:the\s+|any\s*one|whoever)[^,.;\n]*team|for\s+anyone)\b/i, function () { o.forWho = TEAM; });
+    if (!o.forWho) take(cap2('\\b(?:[Mm]essage|[Nn]ote|[Cc]all)\\s+for\\s+(CAP(?:\\s+CAP)?)'), function (m) { o.forWho = m[1]; });
+    if (!o.forWho) take(cap2('\\b(?:asking\\s+for|looking\\s+for|trying\\s+to\\s+reach|wants?\\s+to\\s+reach|needs?|tell|let)\\s+((?:Mr\\.?|Mrs\\.?|Ms\\.?|Dr\\.?)?\\s*CAP(?:\\s+CAP)?)(?=\\s*(?:,|\\.|\\bto\\b|\\bthat\\b|\\bknow\\b|$))'), function (m) { o.forWho = m[1].trim(); });
     if (!o.caller) take(cap2('^\\s*(?:(?:call|message|note)\\s+(?:from\\s+)?|(?:got\\s+a\\s+call\\s+from\\s+))?(CAP(?:\\s+CAP){0,2}?)(?=\\s*(?:,|\\||\\bfrom\\b|\\bwith\\b|\\bat\\b|\\bof\\b|\\bcalled\\b|\\bwas\\b|\\bwith\\b|[.\\n]|$))'), function (m) { o.caller = m[1]; });
     if (!o.company) take(cap2('\\b(?:from|with|of|at|calling\\s+for)\\s+(CAP(?:\\s+(?:CAP|&|and\\s+CAP))*)'), function (m) { o.company = m[1].replace(/\s+(?:and|&)$/, ''); });
 

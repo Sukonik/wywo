@@ -2,6 +2,12 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.6.0] — 2026-11-06 📞
+### Added
+- 📞 **Call is for**: who the call is routed to is now a main field and **always appears** on the Note, Vintage slip, Text and Markdown (and printouts). Blank shows **“Check with team”**
+- ⚡ Quick type recognises routing: “message for Sandra”, “asking for Mr. Patel”, “wants to speak to the zoning attorney”, “check with team”
+- 🗑 **Clear all** button with an **“Yes, I’m sure”** checkbox: empties the whole current note (saved notes are untouched)
+
 ## [0.5.2] — 2026-11-06 🔧
 ### Fixed
 - Publish workflow now cancels a stuck GitHub Pages deployment before deploying (a hung v0.5.0 deploy was blocking every later release with “in progress deployment”)
