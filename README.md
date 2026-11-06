@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.5.1-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.6.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -52,6 +52,8 @@ Every emoji in the app and this README means the same thing everywhere.
 | 🔄 | Automatic merge & publish | Workflows |
 | 🔒 | Privacy — stays in your browser | Footer / README |
 | 🚨 | Urgent call | Urgent flag (red badge) |
+| 📞 | **Call is for** — who the call is routed to (blank → “Check with team”) | Top of the form; every view and printout |
+| 🗑 | Clear all fields (asks “Yes, I’m sure” first) | Quick type bar |
 | ✅ | Checked call type (Telephoned, Please call…) | Classic slip |
 
 **Quick workflow:** ⚡ type it → 🐦 Bird Seed the gaps → 🖨️ export → 💾 save.
@@ -189,7 +191,7 @@ The icons already include their own rounded styling, so don’t add borders or s
 
 How the site has grown: five releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.5.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.5.1 · build a1b2c3d`).
+Current version: **0.6.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.6.0 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|

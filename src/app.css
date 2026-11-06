@@ -209,3 +209,16 @@ footer { text-align: center; color: var(--bb-text-3); font-size: 13px; padding: 
   .pa-sheet.pad .note, .pa-sheet.pad .slip { border-radius: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ---------- Call is for / Clear all ---------- */
+.f--for input { font-weight: 700; }
+.for-badge { display: inline-block; padding: .05em .55em; border-radius: 999px; background: var(--bb-primary-soft); border: 1px solid var(--bb-primary-line); color: var(--bb-primary-text); font-weight: 800; }
+.for-badge--team { background: #fff4d6; border-color: #f0b400; color: #7a5600; }
+:root[data-mode="dark"] .for-badge--team { background: #3a2f0a; border-color: #b58900; color: #ffd23f; }
+@media (prefers-color-scheme: dark) { :root:not([data-mode]) .for-badge--team { background: #3a2f0a; border-color: #b58900; color: #ffd23f; } }
+.note__for { font-size: .95em; margin-bottom: .2em; }
+dialog.confirm { width: min(460px, calc(100% - 1.25rem)); }
+.bb-btn--solid-danger { --_bg: var(--bb-danger); --_fg: #fff; --_bd: transparent; }
+.bb-btn--solid-danger:hover { background: color-mix(in srgb, var(--bb-danger) 88%, #000); border-color: transparent; }
+.sure { background: var(--bb-danger-soft); color: var(--bb-danger); }
+.sure input { accent-color: var(--bb-danger); }

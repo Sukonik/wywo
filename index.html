@@ -70,12 +70,14 @@
         <span class="bb-hint">⌘/Ctrl + Enter · anything we can’t sort goes into the note</span>
         <span class="quick__sp"></span>
         <button class="bb-btn bb-btn--sm bb-btn--ghost" type="button" id="exampleBtn">Example</button>
-        <button class="bb-btn bb-btn--sm bb-btn--ghost" type="button" id="clearBtn">New</button>
+        <button class="bb-btn bb-btn--sm bb-btn--ghost bb-btn--danger" type="button" id="clearBtn">🗑 Clear all</button>
       </div>
     </section>
 
     <section class="fields">
       <label class="urgent"><input type="checkbox" name="urgent"> <span>🚨 Urgent</span></label>
+
+      <label class="f f--for"><span>📞 Call is for <em>leave blank → “Check with team”</em></span><input name="forWho" placeholder="Name — or Check with team"></label>
 
       <label class="f f--big"><span>Caller</span><input name="caller" placeholder="Name"></label>
       <div class="row">
@@ -95,8 +97,8 @@
         <summary>More details <em>for · date · time · call type · signed</em></summary>
         <div class="more__in">
           <div class="row">
-            <label class="f"><span>For</span><input name="forWho" placeholder="Who is this for?"></label>
             <label class="f"><span>Taken by</span><input name="signed" placeholder="Your name"></label>
+            <span></span>
           </div>
           <div class="row">
             <label class="f"><span>Date</span><input type="date" name="date"></label>
@@ -154,6 +156,13 @@
   </div>
 </dialog>
 
+<!-- 🗑 Clear all -->
+<dialog class="seed confirm" id="clearDlg" aria-labelledby="clearTitle">
+  <div class="seed__head"><div><h2 id="clearTitle">🗑 Clear all fields?</h2><p class="bb-hint">This empties the whole current note: caller, call-is-for, reason, topics, notes, references and the quick-type box. Saved notes are not touched.</p></div></div>
+  <div class="seed__body"><label class="seed-all sure"><input type="checkbox" id="clearSure"> <span>Yes, I’m sure</span></label></div>
+  <div class="seed__foot"><button class="bb-btn" type="button" id="clearCancel">Cancel</button><span class="quick__sp"></span><button class="bb-btn bb-btn--solid-danger" type="button" id="clearGo" disabled>Clear all fields</button></div>
+</dialog>
+
 <!-- Saved notes drawer -->
 <aside class="drawer" id="drawer" aria-label="Saved notes" hidden>
   <div class="drawer__head"><h2>Saved notes</h2><button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="drawerClose" aria-label="Close">✕</button></div>
@@ -161,7 +170,7 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.5.1 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.6.0 · build <span id="build">dev</span></footer>
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 
