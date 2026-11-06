@@ -7,9 +7,50 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
+[![Version](https://img.shields.io/badge/version-0.1.0-2563c9)](CHANGELOG.md)
+[![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
+[![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
+
+[🌐 **Live site**](https://sukonik.github.io/wywo/) · [📦 **Repository**](https://github.com/Sukonik/wywo) · [📝 **Changelog**](CHANGELOG.md) · [🐛 **Report an issue**](https://github.com/Sukonik/wywo/issues)
+
 </div>
 
 ---
+
+## 🔗 Links
+
+| | |
+|---|---|
+| 🌐 Live website | https://sukonik.github.io/wywo/ |
+| 📦 Source code | https://github.com/Sukonik/wywo |
+| 🔄 Deploys / versions | https://github.com/Sukonik/wywo/actions |
+| 🐦 Design system | [`bluebird-ui/bluebird.css`](bluebird-ui/bluebird.css) |
+| 🏛️ Sister project (style inspiration) | https://github.com/Sukonik/GoldenSunLaw |
+
+## 🧭 Emoji guide
+
+Every emoji in the app and this README means the same thing everywhere.
+
+| Emoji | Meaning | Where you'll see it |
+|---|---|---|
+| 📞 | The call / the note itself | Title, Markdown export |
+| ⚡ | **Quick type** — plain words → filled form | Top card in the app |
+| 🔎 | **Look up** missing details | Lookup card |
+| 🏢 | Company info (adds a reference) | Lookup button |
+| ☎ | Phone lookup — who called / find a number | Lookup button |
+| 🏛 | Agency / municipal office for a topic | Lookup buttons |
+| ↺ | Fill from a previous call | Lookup button |
+| ＋ | Add a reference or item | Buttons |
+| 🖨️ | Export PDF / Print | Preview toolbar |
+| 💾 | Save note (on this device only) | Saved notes |
+| 🌗 | Light / dark mode | Header |
+| 🐦 | Bluebird UI themes | Header swatches |
+| 🔄 | Automatic merge & publish | Workflows |
+| 🔒 | Privacy — stays in your browser | Footer / README |
+| 🚨 | Urgent call | Urgent flag (red badge) |
+| ✅ | Checked call type (Telephoned, Please call…) | Classic slip |
+
+**Quick workflow:** ⚡ type it → 🔎 fill the gaps → 🖨️ export → 💾 save.
 
 ## ✨ What it does
 
@@ -93,6 +134,16 @@ Every new version is shipped automatically:
 **One-time setup (repo owner):**
 - *Settings → Pages → Source:* **GitHub Actions**
 - *Settings → Actions → General → Workflow permissions:* **Read and write**, and tick **Allow GitHub Actions to create and approve pull requests**
+
+## 🏷️ Versions & updates
+
+Current version: **0.1.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+
+| Version | Highlights |
+|---|---|
+| **0.1.0** | 🚀 First release: Bluebird UI (8 themes), ⚡ Quick type, 🔎 lookups, 🖨️ PDF layouts, 🔄 auto-publish |
+
+**Releasing a new version:** bump the version in this README and [`CHANGELOG.md`](CHANGELOG.md), push to a `claude/**` branch (or open a PR to `main`) and the Publish workflow does the rest.
 
 ## 🔒 Privacy
 
