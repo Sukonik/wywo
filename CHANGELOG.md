@@ -2,6 +2,15 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.7.0] — 2026-11-06 🐦
+### Changed (Bird Seed 2.0)
+- 🐦 Bird Seed now **looks up real information and asks before adding it**. Ten seeds: 🌻 Sunflower (name) · 🌱 Thistle (past calls) · 🌽 Cracked Corn (company profile) · 🎃 Pumpkin (phone) · 🌾 Flax (email) · 🥬 Kale (website) · 🍉 Watermelon (LinkedIn & social) · 🌶️ Pepper (city departments) · 🥒 Cucumber (address) · 🍈 Honeydew (company summary)
+- The website seeds **read the company’s own site** (home + team / contact / about pages): names & titles, phones, emails, LinkedIn & social links, street address (checked on a map), description
+- Every finding says where it came from, with a **see source ↗** link and an **Add?** checkbox; guesses are never pre-ticked
+### Added
+- 🛠 **Look-up engines**: free built-in reader (Jina Reader), or **Firecrawl**, **Crawl4AI** (cloud or self-hosted) and **ScrapeGraphAI** with your own key (kept only in your browser; beta)
+- README: full Bird Seed section; version history now covers v1–v7
+
 ## [0.6.0] — 2026-11-06 📞
 ### Added
 - 📞 **Call is for**: who the call is routed to is now a main field and **always appears** on the Note, Vintage slip, Text and Markdown (and printouts). Blank shows **“Check with team”**
