@@ -4,14 +4,14 @@
 
   /* ---------------- Constants ---------------- */
   var THEMES = [
-    { id: 'bluebird',  name: 'Bluebird',         color: '#2563c9' },
-    { id: 'parakeet',  name: 'Monk Parakeet',    color: '#23913f' },
-    { id: 'cardinal',  name: 'Cardinal',         color: '#c4112f' },
-    { id: 'goldfinch', name: 'Goldfinch',        color: '#f0b400' },
-    { id: 'spoonbill', name: 'Roseate Spoonbill', color: '#d9488d' },
-    { id: 'sparrow',   name: 'Song Sparrow',     color: '#865538' },
-    { id: 'robin',     name: 'American Robin',   color: '#e0651a' },
-    { id: 'heron',     name: 'Night-Heron',      color: '#262b36' }
+    { id: 'bluebird',  name: 'Bluebird',         color: '#2563c9', dk: '#7aa7ff' },
+    { id: 'parakeet',  name: 'Monk Parakeet',    color: '#23913f', dk: '#62d98a' },
+    { id: 'cardinal',  name: 'Cardinal',         color: '#c4112f', dk: '#ff7288' },
+    { id: 'goldfinch', name: 'Goldfinch',        color: '#f0b400', dk: '#ffd43b' },
+    { id: 'spoonbill', name: 'Roseate Spoonbill', color: '#d9488d', dk: '#ff93c4' },
+    { id: 'sparrow',   name: 'Song Sparrow',     color: '#865538', dk: '#d1a07a' },
+    { id: 'robin',     name: 'American Robin',   color: '#e0651a', dk: '#ffa05c' },
+    { id: 'heron',     name: 'Night-Heron',      color: '#262b36', dk: '#cdd3e0' }
   ];
   var METHODS = ['Telephoned', 'Came to see you', 'Returned your call', 'Please call', 'Will call again', 'Wants to see you'];
   var KEY_UI = 'wywo.ui', KEY_DRAFT = 'wywo.draft', KEY_SAVED = 'wywo.saved';
@@ -67,6 +67,14 @@
     $('#themeLabel').textContent = t.name;
     Array.prototype.forEach.call(document.querySelectorAll('.bb-swatch'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === t.id)); });
     ui.theme = t.id; store(KEY_UI, ui);
+    $('#favSvg').href = 'assets/icons/' + t.id + '/favicon.svg';
+    $('#appleIcon').href = 'assets/icons/' + t.id + '/apple-touch-icon.png';
+    syncChrome();
+  }
+  function syncChrome() {
+    var el = document.documentElement, t = THEMES.filter(function (x) { return x.id === el.dataset.theme; })[0] || THEMES[0];
+    var dark = el.dataset.mode ? el.dataset.mode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    $('#themeColor').content = dark ? '#0d0f14' : t.color;
   }
   THEMES.forEach(function (t) {
     var b = document.createElement('button');
@@ -84,7 +92,7 @@
     var el = document.documentElement;
     var dark = el.dataset.mode ? el.dataset.mode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
     el.dataset.mode = dark ? 'light' : 'dark';
-    ui.mode = el.dataset.mode; store(KEY_UI, ui);
+    ui.mode = el.dataset.mode; store(KEY_UI, ui); syncChrome();
   });
   applyTheme(document.documentElement.dataset.theme);
   var sizeSel = $('#sizeSel'); sizeSel.value = document.documentElement.dataset.size || 'l';
@@ -142,7 +150,7 @@
   function renderModern(s) {
     var tel = telHref(s.phone), topics = lines(s.topics);
     var h = '<article class="note">';
-    h += '<div class="note__top"><div><div class="note__kicker">While You Were Out</div><div class="note__title">Callback request</div></div>' +
+    h += '<div class="note__top"><div class="note__brand"><svg class="note__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg><div><div class="note__kicker">While You Were Out</div><div class="note__title">Callback request</div></div></div>' +
       '<div class="note__meta">' + (s.urgent ? '<span class="bb-badge bb-badge--danger">URGENT</span><br>' : '') +
       (s.forWho ? 'For <b>' + esc(s.forWho) + '</b><br>' : '') + esc(fmtDate(s.date, s.time)) + '</div></div>';
     h += '<div class="note__caller"><span class="name">' + (s.caller ? esc(s.caller) : '<span class="empty">Caller name</span>') + '</span>' +

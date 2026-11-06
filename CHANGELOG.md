@@ -2,6 +2,15 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.4.0] — 2026-11-06 🪶
+### Added
+- 🪶 **Icons 2.0**: WYWO bluebird logo (from the Logo Starter) in the header, footer and printed note, recoloured by theme
+- Themed favicons and app icons for all 8 birds (`assets/icons/<theme>/`), SVG + PNG + `favicon.ico`, Apple touch icon, 192/512 icons
+- The tab icon, touch icon and browser `theme-color` follow the selected theme and light/dark mode
+- `site.webmanifest` (installable web app), `tools/build-icons.js`, and an icon board at `assets/icons/`
+### Fixed
+- 🚑 Deploy workflow now publishes `assets/` (the old placeholder logo was returning 404 on the live site)
+
 ## [0.3.1] — 2026-11-06 🧪
 ### Changed
 - New sample call: Phil Gordon · SWA Development Corp · swadevelopment.co (fictional data), used by **Example** and the Quick type hint
