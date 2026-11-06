@@ -24,6 +24,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 6
+      # GitHub Pages refuses a new deploy while an older one is stuck "in progress".
+      # Cancel any stuck deployment from recent commits first (harmless if none).
+      - name: Cancel stuck Pages deployments
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for sha in $(git rev-list --skip=1 -n 5 HEAD); do
+            if gh api -X POST "repos/${{ github.repository }}/pages/deployments/$sha/cancel" >/dev/null 2>&1; then echo "cancelled stuck deployment $sha"; fi
+          done
+          sleep 5
       - name: Assemble site and stamp build
         run: |
           mkdir _site

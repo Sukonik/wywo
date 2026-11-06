@@ -2,6 +2,10 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.5.2] — 2026-11-06 🔧
+### Fixed
+- Publish workflow now cancels a stuck GitHub Pages deployment before deploying (a hung v0.5.0 deploy was blocking every later release with “in progress deployment”)
+
 ## [0.5.1] — 2026-11-06 🧼
 ### Changed
 - Header shows just the logo and “WYWO” (removed the “While You Were Out” subtitle)
