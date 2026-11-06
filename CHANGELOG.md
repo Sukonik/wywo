@@ -2,6 +2,14 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.5.1] — 2026-11-06 🧼
+### Changed
+- Header shows just the logo and “WYWO” (removed the “While You Were Out” subtitle)
+### Fixed
+- 🖨️ Printing: every layout (Full page, Pad slip, 2 per sheet) now auto-fits **one page**, even with Extra large text and long notes (the Pad slip used to spill onto 2–3 pages)
+### Added
+- 🕰️ Website version history with screenshots of v1–v5 in the README (`docs/history/`)
+
 ## [0.5.0] — 2026-11-06 🌲
 ### Added
 - 🌲 **Favicons 2.0**: six botanical tree icons (Cedar default, Pine, Maple, Hazelnut, Linden, Beech) in every size: `.ico`, 16/32/48, Apple touch, 192/512

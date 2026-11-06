@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.5.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.1-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -185,20 +185,21 @@ Six botanical app icons wrap the same black bluebird: **Cedar** (default), **Pin
 
 The icons already include their own rounded styling, so don’t add borders or shadows. iOS applies its own mask: test on a device before an App Store release (the 1024 px Cedar source is `assets/icons/cedar/app-icon-1024.png`). The logo’s source SVGs are in [`assets/logo/`](assets/logo/).
 
-## 🏷️ Versions & updates
+## 🕰️ Website version history
 
-Current version: **0.5.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you're running (`build a1b2c3d`). Full history lives in the [Changelog](CHANGELOG.md).
+How the site has grown: five releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-| Version | Highlights |
-|---|---|
-| **0.5.0** | 🌲 **Favicons 2.0**: six botanical tree icons (Cedar default), choose yours in Theme → App icon |
-| **0.4.0** | 🪶 **Icons 2.0**: the WYWO bluebird logo, themed favicons / app icons for all 8 birds, installable web-app manifest |
-| **0.3.1** | 🧪 New sample call (Phil Gordon, SWA Development Corp); Quick type understands “wants to speak to…”, preferences like “after 3pm”, and bare websites |
-| **0.3.0** | 🐦 **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls — you tick what goes in your note |
-| **0.2.0** | ✨ Calmer Keep × Apple Notes layout, nothing lost in Quick type (leftovers → Additional notes), clean calligraphy Vintage slip, larger text by default |
-| **0.1.0** | 🚀 First release: Bluebird UI (8 themes), ⚡ Quick type, 🔎 lookups, 🖨️ PDF layouts, 🔄 auto-publish |
+Current version: **0.5.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.5.1 · build a1b2c3d`).
 
-**Releasing a new version:** bump the version in this README and [`CHANGELOG.md`](CHANGELOG.md), push to a `claude/**` branch (or open a PR to `main`) and the Publish workflow does the rest.
+| | Version | What changed |
+|---|---|---|
+| <img src="docs/history/v5.jpg" width="420" alt="v5"> | **v5 · 0.5.0 – 0.5.1** 🌲<br>Favicons 2.0 | Six botanical tree app icons (🌲 Cedar default, Pine, Maple, Hazelnut, Linden, Beech) with a **Theme → App icon** picker, installable web-app manifest, and a clean “WYWO” header |
+| <img src="docs/history/v4.jpg" width="420" alt="v4"> | **v4 · 0.4.0** 🪶<br>Icons 2.0 | The WYWO bluebird logo in the header, footer and printed note, recoloured by theme; themed favicons; deploy fix so site assets publish |
+| <img src="docs/history/v3.jpg" width="420" alt="v3"> | **v3 · 0.3.0 – 0.3.1** 🐦<br>Bird Seed | **Bird Seed**: 8 seeds that suggest names, phone checks, emails, websites, LinkedIn, verified Long Beach, NY departments, company profiles and past calls; new Phil Gordon sample; smarter Quick type |
+| <img src="docs/history/v2.jpg" width="420" alt="v2"> | **v2 · 0.2.0** ✨<br>Calm redesign | Keep × Apple Notes style editor, **nothing lost** in Quick type (leftovers → Additional notes), calligraphy Vintage slip, larger text by default, saved-notes drawer |
+| <img src="docs/history/v1.jpg" width="420" alt="v1"> | **v1 · 0.1.0** 🚀<br>First release | Bluebird UI with 8 bird themes, Quick type, lookups, Modern / Classic / Text / Markdown views, PDF export layouts, auto-publish |
+
+**Releasing a new version:** bump the version in this README and [`CHANGELOG.md`](CHANGELOG.md), push to a `claude/**` branch and the workflows merge and publish it.
 
 ## 🔒 Privacy
 

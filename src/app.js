@@ -297,11 +297,26 @@
     a.href = URL.createObjectURL(blob); a.download = 'wywo-' + (slug || 'call') + (md ? '.md' : '.txt');
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
+  // Usable area per layout in CSS px (96 per inch) after @page margins; each slip must fit ONE page.
+  var PAGE = { full: { w: 700, h: 930, cols: 1 }, pad: { w: 360, h: 470, cols: 1 }, two: { w: 450, h: 710, cols: 2 } };
+  function fitToPage(area, layout) {
+    var P = PAGE[layout], els = Array.prototype.slice.call(area.querySelectorAll('.note, .slip'));
+    area.style.cssText = 'display:block;position:absolute;left:-99999px;top:0;visibility:hidden;width:' + (P.w * P.cols + (P.cols > 1 ? 38 : 0)) + 'px';
+    var start = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')) || 1.15, fs = Math.min(start, layout === 'full' ? start : 1);
+    for (; fs > 0.3; fs -= 0.02) {
+      els.forEach(function (e) { e.style.setProperty('--fs', fs.toFixed(2)); });
+      if (els.every(function (e) { return e.offsetHeight <= P.h; })) break;
+    }
+    area.style.cssText = '';
+    return fs;
+  }
   $('#printBtn').addEventListener('click', function () {
     var layout = $('#printLayout').value, one = view === 'classic' ? renderClassic(state) : renderModern(state);
     var n = layout === 'two' ? 2 : 1, h = '';
     for (var i = 0; i < n; i++) h += one;
-    $('#printArea').innerHTML = '<div class="pa-sheet ' + layout + '">' + h + '</div>';
+    var area = $('#printArea');
+    area.innerHTML = '<div class="pa-sheet ' + layout + '">' + h + '</div>';
+    fitToPage(area, layout);
     var st = $('#pageStyle') || document.head.appendChild(Object.assign(document.createElement('style'), { id: 'pageStyle' }));
     st.textContent = '@page{' + ({ full: 'size:letter portrait;margin:.6in', pad: 'size:4.25in 5.5in;margin:.25in', two: 'size:letter landscape;margin:.5in' })[layout] + '}';
     toast('Choose “Save as PDF” as the destination to export');
