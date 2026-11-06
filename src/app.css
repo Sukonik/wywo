@@ -415,3 +415,22 @@ dialog.seed .seed__head, dialog.seed .seed__foot { flex: none; }
   html, body { padding: 0 !important; margin: 0 !important; height: auto !important; min-height: 0 !important; }
   .mnav, .pop, .pop-scrim, .drawer, .scrim, .bb-toast { display: none !important; }
 }
+
+/* =====================================================================
+   v0.8.1 — hotfix from real-iPhone feedback
+   ===================================================================== */
+/* text-field styling must never stretch checkboxes (Call type chips) */
+.f input[type="checkbox"], .f input[type="radio"] {
+  width: 18px; height: 18px; min-height: 0; padding: 0; margin: 0; border: 0; background: none; box-shadow: none;
+  border-radius: 4px; flex: none; field-sizing: fixed; accent-color: var(--bb-primary);
+}
+.f .bb-check { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .85rem; min-height: 44px; line-height: 1.2; font-size: 15px; white-space: nowrap; }
+.chips { gap: .5rem; }
+/* iOS renders date/time inputs as small inline pills unless told otherwise */
+.f input[type="date"], .f input[type="time"] { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 0; text-align: left; }
+.f input[type="date"]::-webkit-date-and-time-value, .f input[type="time"]::-webkit-date-and-time-value { text-align: left; min-height: 1.4em; }
+
+/* single-line inputs keep their column width (auto-size is for textareas only) */
+.f input, .refs input, #city, .quick textarea.x { field-sizing: fixed; max-width: 100%; min-width: 0; }
+.f textarea, .quick textarea { field-sizing: content; }
+.row > .f { min-width: 0; }

@@ -2,6 +2,13 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.8.1] — 2026-11-06 🩹
+### Fixed (from real-iPhone feedback)
+- **Call type** chips were stretched into giant checkboxes with clipped labels on phones (text-field styling leaked onto checkboxes)
+- Date and time inputs rendered as small pills on iOS; now full width
+- Email / cell / fax field spilled past the card edge; stray spacer gap after “Taken by”; section subtitle updated
+- Verified no horizontal overflow from 320 px to 1280 px with every section expanded
+
 ## [0.8.0] — 2026-11-06 🌲
 ### Added
 - 🌲 **Forest line-art themes**: Cedar, Pine, Maple, Hazelnut, Linden, Beech. Each sets the app icon **and** a clean line illustration, drawn in the current colour theme (quick-card banner, note corner, Bird Seed window, empty states; also printed). Can be switched off
