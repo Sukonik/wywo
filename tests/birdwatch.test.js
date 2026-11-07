@@ -147,3 +147,16 @@ test('🌐 weather AT a note’s date/time: forecast vs archive routing, place-t
   const offsetMin = -new Date(2026, 5, 2, 12, 0).getTimezoneOffset(), shifted = (12 * 60 - offsetMin + (-14400 / 60)) / 60; assert.equal(old.temp, Math.round(24 + shifted) % 24 === old.temp ? old.temp : old.temp, 'resolves to a valid hour');
   await assert.rejects(BW.at(BW.PLACES[0], BW.ymd(new Date(Date.now() + 12 * 864e5)), '10:00', f), /7 days ahead/);
 });
+
+test('🔁 one dropped connection or a brief 429 does not lose the weather (retry once), but a real error still surfaces', async () => {
+  globalThis.BirdWatchRetryMs = 0; sessionStorage.clear();
+  let n = 0; const flaky = async (url) => { if (++n === 1) throw new TypeError('network dropped'); return { ok: true, json: async () => forecast() }; };
+  assert.ok((await BW.load(BW.PLACES[0], flaky)).now, 'second attempt succeeds'); assert.equal(n, 2);
+  sessionStorage.clear(); n = 0; const limited = async () => (++n === 1 ? { ok: false, status: 429, json: async () => ({}) } : { ok: true, json: async () => forecast() });
+  assert.ok((await BW.load(BW.PLACES[0], limited)).now); assert.equal(n, 2);
+  sessionStorage.clear(); n = 0; const gone = async () => { n++; throw new TypeError('offline'); };
+  await assert.rejects(BW.load(BW.PLACES[0], gone), /Couldn’t reach the weather service/); assert.equal(n, 2, 'tried exactly twice');
+  sessionStorage.clear(); n = 0; const bad = async () => { n++; return { ok: false, status: 400, json: async () => ({}) }; };
+  await assert.rejects(BW.load(BW.PLACES[0], bad), /returned 400/); assert.equal(n, 1, 'a 400 is not retried');
+  globalThis.BirdWatchRetryMs = undefined;
+});
