@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.9.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -49,7 +49,9 @@ Every emoji in the app and this README means the same thing everywhere.
 | ✨ | Organize — sort what you typed into fields | Quick type |
 | 🎨 | Bluebird UI colour themes | Appearance menu |
 | 🪶 | The WYWO bluebird logo | Header, footer, printed note |
-| 🌤 | **Bird Watch**: weather chip, weather panel, per-note weather / day / season tags | Header chip · 🌤 Weather · form |
+| 🌤 | **Bird Watch**: weather chip + full-screen view, per-note weather / day / season tags | Header chip · 🌤 Weather · form |
+| 🎯 ☔ 🕶 🌊 🌫 | Bird Watch sections: Watch score · Rain · UV · Tides · AQI | Bird Watch screen |
+| 🩺 ▶ 🌐 | Bird Seed **Check tools** · **real demo** · **company website** box | Bird Seed window |
 | 🗓 🍂 🌦 🌇 🇺🇸 | The five tags: day & time · season · weather · sunrise/sunset · holiday | Bird Watch tags |
 | 🌲 | **Forest** (Cedar, Pine, Maple, Hazelnut, Linden, Beech): app icon + line art | Appearance menu |
 | ☀️ 🌙 | Light / dark mode (or Auto) | Header, Appearance menu |
@@ -192,7 +194,16 @@ The website seeds (🌻 🎃 🌾 🥬 🍉 🥒 🍈) read the company’s own 
 | [**Crawl4AI**](https://github.com/unclecode/crawl4ai) | Your key (cloud) or your own server | cloud `POST https://api.crawl4ai.com/scrape` · self-hosted `POST <your server>/md` |
 | [**ScrapeGraphAI**](https://github.com/ScrapeGraphAI/Scrapegraph-ai) | Your API key | `POST https://v2-api.scrapegraphai.com/api/extract` with a prompt, so AI pulls the contact details |
 
-> 🧪 **Status:** the built-in reader is tested against real websites. The three optional engines send the requests described in each project’s own docs and are tested with simulated responses, so they are **beta** until tried with a real key.
+> 🧪 **Status:** the built-in reader is tested against real websites (see [Tests](#-tests)). The three optional engines send the requests described in each project’s own docs and are tested with simulated responses, so they are **beta** until tried with a real key.
+
+### Prove it works (in the Bird Seed window)
+| Button | What it does |
+|---|---|
+| ▶ **Try the real demo** | Loads a call about a real public organisation (the City of Long Beach, `longbeachny.gov`) and runs every seed, so you can *see* real names, numbers, LinkedIn, address and departments come back |
+| 🩺 **Check tools** | Tests each look-up service **right now, from your browser** (domain lookups, website reader, Wikidata, map) and shows ✅ / ❌ with timing |
+| 🌐 **Company website** | Paste the company’s website when the name alone isn’t enough. **Tip:** invented companies (like the sample call’s) have no website to read; real ones do |
+
+If nothing is found, Bird Seed now tells you why and what to try.
 
 ### Privacy and limits
 - Your **API keys are stored only in this browser** and sent only to that service. Never put a key in the page or the repo.
@@ -221,22 +232,25 @@ Open **🌤 Bird Watch tags** in the form (or just look at the note). Each tag h
 - The weather is for the **place’s** local time even if your device is in another timezone.
 - Turn **Auto-tag** off and use **🔄 Tag weather now** when you want it.
 
-### The weather panel
-The header **weather chip** (🌧 53°F) and the **🌤 Weather** button on phones open the panel:
+### The Bird Watch screen
+Tap the header **weather chip** (🌧 53°F) or **🌤 Weather** on a phone. It opens a full-screen, forest-themed view inspired by the Long Beach Bike Club’s *Ride Weather* page, drawn with Bluebird UI: no embedded pages.
 
-| Tab | What it shows |
+| Part | What you get |
 |---|---|
-| **Now** | Current conditions, next 24 hours, 7-day outlook · place picker (Long Beach area built in, or **search any city**, or 📍 my location) · °F / °C |
-| **ClearSky** | The full [ClearSky weather app](https://sukonik.github.io/weather-app/) inside Bird Watch |
-| **Air** | [ClearSky Air Quality](https://sukonik.github.io/weather-app/air-quality.html) |
-| **Tides** | [ClearSky Tide Charts](https://sukonik.github.io/weather-app/tides.html) |
+| 🎯 **Watch score** | A 0–100 gauge (the bluebird rides the arc) with a verdict (*Prime · Good · Fair · Stay in*) and the **best two-hour daylight window** |
+| 🌤 **Now** | Temp, wind, rain, UV, humidity and sunset tiles with segment bars · a **wind compass where the bluebird flies with the wind** · 24-hour chart · 7-day outlook |
+| ☔ **Rain** | A plain-language summary (“Rain likely from 7 PM, about 0.3 in”), 15-minute nowcast, hourly chance bars, 7-day outlook |
+| 🕶 **UV** | UV level with advice and a rough burn time, hourly UV coloured by level, 7-day peaks |
+| 🌊 **Tides** | Rising/falling now, next highs and lows, a two-day tide curve with night shading and a “now” marker. **NOAA CO-OPS** predictions (Long Beach, NY uses station 8516663); other places use the nearest station |
+| 🌫 **AQI** | US Air Quality Index gauge, category and health advice, six pollutants, 24-hour chart |
+| 📍 Place · °F/°C | Long Beach area built in, **search any city**, or use **my location** |
 
 **🏷 Tag this note** puts the selected place’s weather on the current note.
 
 ### Where the data comes from
-[Open-Meteo](https://open-meteo.com/): free, no API key, the same source ClearSky uses. Only a place’s **coordinates** are sent, never note text. The design borrows ideas from the [Long Beach Bike Club ride-weather page](https://sukonik.github.io/lbbikeclub/weather.html) (header chip, place picker, hourly + 7-day outlook, colour-field background).
+[Open-Meteo](https://open-meteo.com/) (weather, rain, UV, air quality, free, no key) and [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/) (tides): the same sources [ClearSky](https://sukonik.github.io/weather-app/) uses, which is linked in the footer for the full app. Only a place’s **coordinates** are sent, never note text.
 
-> 🧪 Tested against the live Open-Meteo service (forecast, past days, historical archive, city search) and in-browser with simulated data on desktop and a 390 px phone. The embedded ClearSky pages load, but I haven’t tested them on a real phone.
+> 🧪 Verified against the live services (forecast, past days, archive, geocoding, NOAA tide predictions, air quality) and by [automated tests](#-tests) covering the score, rain, UV, AQI and tide maths and every screen.
 
 ## 🌲 Forests, icons & logo
 
@@ -278,12 +292,13 @@ Built phone-first, with the same features as desktop:
 
 ## 🕰️ Website version history
 
-How the site has grown: nine releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
+How the site has grown: ten releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.9.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.9.0 · build a1b2c3d`).
+Current version: **0.10.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.10.0 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|
+| <img src="docs/history/v10.jpg" width="420" alt="v10"> | **v10 · 0.10.0** 🌲<br>Bird Watch 2.0 + tests | **Bird Watch** rebuilt as a native forest-themed weather view (Watch score gauge, **Now · Rain · UV · Tides · AQI**, no embedded pages); **Bird Seed proven**: 90 automated tests, live-internet tests, a **Check tools** self-test, a **real demo** and a website box; Quick type fixes |
 | <img src="docs/history/v9.jpg" width="420" alt="v9"> | **v9 · 0.9.0** 🌤<br>Bird Watch | **Bird Watch**: a weather chip in the header, a weather panel (now · hourly · 7 days · any city · ClearSky, Air and Tides), and **per-note tags** for day, time, season, weather, sunrise/sunset and nearby holidays; colour-field background and richer menus inspired by the Long Beach Bike Club site; v0.8.1 fixed the phone Call-type chips |
 | <img src="docs/history/v8.jpg" width="420" alt="v8"> | **v8 · 0.8.0** 🌲<br>Forests & mobile | **Forest line-art themes** (Cedar, Pine, Maple, Hazelnut, Linden, Beech) in a new **Appearance** menu, a full **mobile redesign** (bottom-sheet menus, Edit / Preview bar, thumb-sized buttons), favicons with **transparent corners**, one-page printing kept |
 | <img src="docs/history/v7.jpg" width="420" alt="v7"> | **v7 · 0.7.0** 🐦<br>Bird Seed 2.0 | Ten real look-up seeds that read the company’s own website (free reader, or **Firecrawl / Crawl4AI / ScrapeGraphAI** with your key), then **ask you** before adding names, phones, emails, websites, LinkedIn, addresses and summaries |
@@ -295,6 +310,23 @@ Current version: **0.9.0**. Every merge to `main` publishes automatically, and t
 | <img src="docs/history/v1.jpg" width="420" alt="v1"> | **v1 · 0.1.0** 🚀<br>First release | Bluebird UI with 8 bird themes, Quick type, lookups, Modern / Classic / Text / Markdown views, PDF export layouts, auto-publish |
 
 **Releasing a new version:** bump the version in this README and [`CHANGELOG.md`](CHANGELOG.md), push to a `claude/**` branch and the workflows merge and publish it.
+
+## 🧪 Tests
+
+```bash
+npm install        # once (installs jsdom for the page-reading tests)
+npm test           # 90 automated tests (about 343 checks), ~2 seconds, no internet needed
+npm run test:live  # the same ideas against the REAL internet (opt-in)
+```
+
+| Suite | Proves |
+|---|---|
+| `tests/birdseed.test.js` | **Every Bird Seed seed** does what it says: name tidy / team-page lookup, phone checks, email domain & on-site addresses, website discovery, LinkedIn & social links, Long Beach departments, address + map check, summaries, all four engines’ request shapes, “apply to note” behaviour, and the rules: *guesses and links are never pre-ticked, every finding names its source, one failure never breaks the rest* |
+| `tests/quicktype.test.js` | Quick type sorts messy real-world phrases correctly and **loses nothing** |
+| `tests/birdwatch.test.js` | Watch score, best window, rain, UV, AQI, tide maths and stations, weather-at-a-time (forecast vs archive, timezones), note tags, and every Bird Watch screen (plus HTML escaping) |
+| `tests/live/*.test.js` | Real websites, DNS, Wikidata, OpenStreetMap: the City of Long Beach demo must return real findings |
+
+The tests are realistic fixtures (JSON-LD sites, plain-HTML law-firm footers, WordPress-style pages, markdown from Firecrawl/Crawl4AI) and were checked the hard way: deliberately breaking the code makes them fail. GitHub Actions runs `npm test` on every push ([`test.yml`](.github/workflows/test.yml)).
 
 ## 🔒 Privacy
 
@@ -313,7 +345,10 @@ assets/art/           forest line illustrations (also inlined in index.html)
 tools/                build-art.js · build-favicons.sh
 src/app.js            form, quick-type parser, Bird Seed UI, renderers, export
 src/birdseed.js       Bird Seed engine (10 seeds + look-up engines)
-src/birdwatch.js      Bird Watch engine (weather, tags, holidays)
+src/birdwatch.js      Bird Watch engine (weather, score, rain, UV, AQI, tides, tags)
+src/birdwatch-view.js Bird Watch screens (pure functions → HTML)
+src/quicktype.js      Quick type parser
+tests/                automated tests + fixtures (npm test)
 src/directory.js      verified Long Beach, NY department directory
 .github/workflows/    auto-merge + Pages publish
 ```

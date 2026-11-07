@@ -183,41 +183,35 @@
     </section>
 </main>
 
-<!-- 🌤 Bird Watch (weather) -->
-<dialog class="seed wx" id="wxDlg" aria-labelledby="wxTitle">
-  <div class="seed__head">
-    <div><h2 id="wxTitle">🌤 Bird Watch</h2><p class="bb-hint">Weather for your notes · Open-Meteo data, ClearSky pages</p></div>
-    <button class="bb-btn bb-btn--ghost bb-btn--icon" type="button" id="wxClose" aria-label="Close">✕</button>
+<!-- 🌤 Bird Watch (weather) — full-screen view -->
+<section class="wv" id="wxView" hidden role="dialog" aria-modal="true" aria-labelledby="wvTitle">
+  <div class="wv__bar">
+    <button class="bb-btn bb-btn--ghost" type="button" id="wxClose" aria-label="Back to the note">← <span class="wv__back">Back</span></button>
+    <h2 class="wv__title" id="wvTitle"><svg class="wv__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg>Bird Watch</h2>
+    <span class="quick__sp"></span>
+    <button class="bb-btn bb-btn--primary" type="button" id="wxTag">🏷 Tag this note</button>
   </div>
-  <div class="wx__tabs"><div class="seg seg--full" id="wxTabs" role="tablist" aria-label="Weather views">
-    <button type="button" role="tab" data-tab="now" aria-pressed="true">Now</button>
-    <button type="button" role="tab" data-tab="clearsky" aria-pressed="false">ClearSky</button>
-    <button type="button" role="tab" data-tab="air" aria-pressed="false">Air</button>
-    <button type="button" role="tab" data-tab="tides" aria-pressed="false">Tides</button>
-  </div></div>
-  <div class="seed__body wx__body">
-    <section id="wxNow">
-      <div class="wx__bar">
+  <div class="wv__scroll" id="wvScroll">
+    <div class="wv__wrap">
+      <div class="wv__toolbar">
         <select class="mini wide" id="wxPlace" aria-label="Place"></select>
         <div class="seg" id="wxUnits" role="group" aria-label="Units"><button type="button" data-u="imperial" aria-pressed="true">°F</button><button type="button" data-u="metric" aria-pressed="false">°C</button></div>
-      </div>
-      <div class="wx__find">
-        <input id="wxSearch" type="search" placeholder="Search any city…" aria-label="Search for a city" autocomplete="off">
-        <button class="bb-btn" type="button" id="wxSearchBtn">Search</button>
-        <button class="bb-btn" type="button" id="wxGeo" title="Use my location">📍</button>
+        <div class="wx__find"><input id="wxSearch" type="search" placeholder="Search any city…" aria-label="Search for a city" autocomplete="off"><button class="bb-btn" type="button" id="wxSearchBtn">Search</button><button class="bb-btn" type="button" id="wxGeo" title="Use my location" aria-label="Use my location">📍</button></div>
       </div>
       <div id="wxResults" class="wx__results" hidden></div>
-      <div id="wxCurrent" class="wx__cur" aria-live="polite"><p class="bb-hint">Loading weather…</p></div>
-      <h3 class="wx__h">Next 24 hours</h3><div id="wxHours" class="wx__hours"></div>
-      <h3 class="wx__h">7 days</h3><div id="wxDays" class="wx__days"></div>
-    </section>
-    <section id="wxFrame" hidden>
-      <iframe id="wxIframe" title="ClearSky weather" loading="lazy" referrerpolicy="no-referrer"></iframe>
-      <a class="bb-btn bb-btn--sm" id="wxOpen" href="https://sukonik.github.io/weather-app/" target="_blank" rel="noopener noreferrer">Open full page ↗</a>
-    </section>
+      <div id="wvHero" aria-live="polite"></div>
+      <nav class="wv__tabs" id="wxTabs" role="tablist" aria-label="Weather sections">
+        <button type="button" role="tab" data-tab="now" aria-selected="true"><i aria-hidden="true">🌤</i><span>Now</span></button>
+        <button type="button" role="tab" data-tab="rain" aria-selected="false"><i aria-hidden="true">☔</i><span>Rain</span></button>
+        <button type="button" role="tab" data-tab="uv" aria-selected="false"><i aria-hidden="true">🕶</i><span>UV</span></button>
+        <button type="button" role="tab" data-tab="tides" aria-selected="false"><i aria-hidden="true">🌊</i><span>Tides</span></button>
+        <button type="button" role="tab" data-tab="aqi" aria-selected="false"><i aria-hidden="true">🌫</i><span>AQI</span></button>
+      </nav>
+      <div id="wvBody" class="wv__body" aria-live="polite"></div>
+      <footer class="wv__foot">Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener noreferrer">NOAA CO-OPS</a> · More in <a href="https://sukonik.github.io/weather-app/" target="_blank" rel="noopener noreferrer">ClearSky ↗</a></footer>
+    </div>
   </div>
-  <div class="seed__foot"><span class="bb-hint" id="wxFootNote">Tags use the place above.</span><span class="quick__sp"></span><button class="bb-btn bb-btn--primary" type="button" id="wxTag">🏷 Tag this note</button></div>
-</dialog>
+</section>
 
 <!-- 🐦 Bird Seed -->
 <dialog class="seed" id="seedDlg" aria-labelledby="seedTitle">
@@ -239,7 +233,13 @@
         <p class="bb-hint" id="engineNote"></p>
       </div>
     </details>
+    <label class="f"><span>Company website <em>optional · paste it when the company name alone isn’t enough</em></span><input id="seedSite" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com"></label>
     <label class="f"><span>City for local departments <em>Long Beach, NY has a verified directory</em></span><input id="city" placeholder="Long Beach, NY"></label>
+    <div class="seed__tools">
+      <button class="bb-btn bb-btn--sm" type="button" id="seedDemoBtn" title="Loads a call about a real public organisation and runs every seed">▶ Try the real demo</button>
+      <button class="bb-btn bb-btn--sm" type="button" id="seedCheckBtn" title="Tests each look-up service right now from your browser">🩺 Check tools</button>
+    </div>
+    <div id="seedCheck" class="seedcheck" role="status" aria-live="polite" hidden></div>
   </div>
   <div class="seed__body" id="seedStep2" hidden><div id="seedResults"></div></div>
   <div class="seed__foot">
@@ -264,7 +264,7 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.9.0 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.10.0 · build <span id="build">dev</span></footer>
 <nav class="mnav" aria-label="Switch between editing and preview">
   <button type="button" data-pane="edit" aria-pressed="true"><span aria-hidden="true">✏️</span>Edit</button>
   <button type="button" data-pane="preview" aria-pressed="false"><span aria-hidden="true">👁</span>Preview</button>
@@ -274,9 +274,11 @@
 <div class="bb-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printArea" aria-hidden="true"></div>
 
+<script src="src/quicktype.js"></script>
 <script src="src/directory.js"></script>
 <script src="src/birdseed.js"></script>
 <script src="src/birdwatch.js"></script>
+<script src="src/birdwatch-view.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

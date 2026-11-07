@@ -395,90 +395,7 @@
   });
 
   /* ---------------- Quick type: plain words -> fields ---------------- */
-  // Sorts plain words into fields. NOTHING is thrown away: whatever can't be
-  // categorised lands in `reason` (if empty) or `extra` (Additional notes).
-  function parseQuick(t) {
-    var o = {}, refs = [], rest = '\n' + String(t).replace(/\r/g, '').replace(/\s+(?:--+|[—–])\s+/g, '. ') + '\n', cats = 0;
-    function take(re, fn) { var m = rest.match(re); if (m) { fn(m); rest = rest.replace(m[0], ' '); cats++; } return !!m; }
-    var CAP = "[A-Z][\\w’'.-]*";
-    var cap2 = function (re) { return new RegExp(re.replace(/CAP/g, CAP)); };
-
-    // 1. explicit "label: value" lines
-    [['caller', /^[ \t]*(?:caller|name)[ \t]*:[ \t]*(.+)$/im], ['company', /^[ \t]*(?:company|org|organization)[ \t]*:[ \t]*(.+)$/im],
-     ['phone', /^[ \t]*(?:phone|tel|telephone)[ \t]*:[ \t]*(.+)$/im], ['alt', /^[ \t]*(?:cell|fax|email|e-mail)[ \t]*:[ \t]*(.+)$/im],
-     ['forWho', /^[ \t]*for[ \t]*:[ \t]*(.+)$/im], ['reason', /^[ \t]*(?:reason|why)[ \t]*:[ \t]*(.+)$/im],
-     ['action', /^[ \t]*(?:action|request)[ \t]*:[ \t]*(.+)$/im], ['extra', /^[ \t]*notes?[ \t]*:[ \t]*(.+)$/im],
-     ['topics', /^[ \t]*(?:topics?|re|regarding|about)[ \t]*:[ \t]*(.+)$/im]]
-      .forEach(function (kv) { take(kv[1], function (m) { o[kv[0]] = m[1].trim(); }); });
-
-    // 2. links -> references
-    var urls = rest.match(/(?:https?:\/\/|www\.)[^\s,;)]+/gi) || [];
-    urls.forEach(function (u) { u = u.replace(/[.,;:!?]+$/, ''); rest = rest.replace(u, ' '); cats++;
-      refs.push({ title: u.replace(/^https?:\/\/(www\.)?/i, '').split('/')[0], detail: '', url: /^www\./i.test(u) ? 'https://' + u : u }); });
-
-    // 3. email, bare domains, phones, time, urgent
-    take(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, function (m) { o.alt = o.alt ? o.alt + ' · ' + m[0] : m[0]; });
-    (rest.match(/\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:com|net|org|co|io|gov|us|biz|info|edu)\b/gi) || []).forEach(function (d) {
-      rest = rest.replace(d, ' '); cats++; if (!refs.some(function (r) { return r.url === 'https://' + d; })) refs.push({ title: d, detail: '', url: 'https://' + d }); });
-    rest = rest.replace(/\b(?:web\s*site|site|domain)(?:\s+name)?\s*[:=]?\s*(?=[.,;]|\s*$)/gi, ' ');
-    var phones = rest.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?:\s*(?:x|ext\.?)\s*\d+)?/g) || [];
-    phones.forEach(function (p, i) { rest = rest.replace(p, ' | '); cats++; var c = p.trim().replace(/^\+?1[\s.-]/, '').replace(/^\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})(.*)$/, function (m, a, b, d, tail) { return a + '-' + b + '-' + d + tail; });
-      if (i === 0 && !o.phone) o.phone = c; else o.alt = o.alt ? o.alt + ' · ' + c : c; });
-    (function () {
-      var m = rest.match(/\b(?:(after|before|until|by|around|from|between)\s+)?(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?\b/i);
-      if (m && !m[1]) { var h = +m[2] % 12 + (/p/i.test(m[4]) ? 12 : 0); o.time = pad(h) + ':' + (m[3] || '00'); rest = rest.replace(m[0], ' '); cats++; }
-    })();
-    take(/\b(?:very\s+)?(?:urgent(?:ly)?|asap|emergency)\b[!.]*/i, function () { o.urgent = true; });
-
-    // 4. transfer + topics + callback wording
-    if (!o.caller) take(/^\s*([A-Za-z][\w’'.-]*(?:\s+[A-Za-z][\w’'.-]*)?)\s+(?:called|phoned|rang|is\s+calling)\b/, function (m) { o.caller = m[1].replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); });
-    var again = take(/\bwill\s+call\s+(?:you\s+)?again\b/i, function () {});
-    var cb = take(/\b(?:(?:wants?|asked?|would\s+like|needs?)\s+(?:someone|somebody|you|us)\s+to\s+)?(?:please\s+)?(?:call|ring|phone)\s+(?:him|her|them|me|back)(?:\s+back)?\b|\bcall\s?back\b|\breturn\s+(?:the\s+|his\s+|her\s+|their\s+)?call\b/i, function () {});
-    var tr = '';
-    take(/\b(?:was\s+|were\s+)?transferred\s+(?:by|from)\s+(?:the\s+)?([^,.;\n]+)/i, function (m) { tr = m[1].trim(); });
-    if (!o.topics && !take(/(?:\bre\s*:|\bregarding\b|\bconcerning\b|\bquestions?\s+(?:on|about|regarding|concerning)\b|\bwants?\s+to\s+know\s+about\b)\s*([^\n]+?)(?=\.(?:\s|$)|\n|$)/i, function (m) { o.topics = m[1]; }))
-      take(/\b(?:asking|calling|call(?:ed)?|phoned|wondering)?\s*\babout\s+([^,.;\n]+)/i, function (m) { o.topics = m[1]; });
-    if (o.topics) o.topics = o.topics.split(/\s*(?:,|;|\band\b|\+|&|\n)\s*/i).map(function (x) { return x.trim().replace(/\.$/, ''); })
-      .filter(Boolean).map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }).join('\n');
-    var spoke = '';
-    take(/\b(?:wants?|would\s+like|asked?)\s+to\s+(?:speak|talk)\s+(?:to|with)\s+(?:the\s+)?([^,.;\n|]+)/i, function (m) { spoke = m[1].trim().replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); });
-    rest = rest.replace(/\b(?:and\s+)?(?:(?:web\s*site|site|domain)(?:\s+name)?|e-?mail(?:\s+address)?)\s*(?:is|:|=)\s*/gi, ' ')
-      .replace(/\b(?:and\s+)?(?:is\s+)?also\s+(?:reachable|available)\s*(?:at|on)?\s*/gi, ' ');
-    var prefs = [];
-    for (var pm; (pm = rest.match(/\b(?:prefers?|best\s+(?:time|way)|can\s+be\s+reached)\b[^.\n]*/i));) { prefs.push(pm[0].trim().replace(/^./, function (c) { return c.toUpperCase(); }).replace(/\s+/g, ' ')); rest = rest.replace(pm[0], ' '); cats++; }
-    rest = rest.replace(/\b(?:also\s+)?(?:reachable|available)\s*(?:at|on)?\s*(?=[.|,]|\s*$)/gi, ' ');
-
-    // 5. people & places
-    if (!o.forWho) take(/\b(?:check\s+with\s+(?:the\s+)?team|for\s+(?:the\s+|any\s*one|whoever)[^,.;\n]*team|for\s+anyone)\b/i, function () { o.forWho = TEAM; });
-    if (!o.forWho) take(cap2('\\b(?:[Mm]essage|[Nn]ote|[Cc]all)\\s+for\\s+(CAP(?:\\s+CAP)?)'), function (m) { o.forWho = m[1]; });
-    if (!o.forWho) take(cap2('\\b(?:asking\\s+for|looking\\s+for|trying\\s+to\\s+reach|wants?\\s+to\\s+reach|needs?|tell|let)\\s+((?:Mr\\.?|Mrs\\.?|Ms\\.?|Dr\\.?)?\\s*CAP(?:\\s+CAP)?)(?=\\s*(?:,|\\.|\\bto\\b|\\bthat\\b|\\bknow\\b|$))'), function (m) { o.forWho = m[1].trim(); });
-    if (!o.caller) take(cap2('^\\s*(?:(?:call|message|note)\\s+(?:from\\s+)?|(?:got\\s+a\\s+call\\s+from\\s+))?(CAP(?:\\s+CAP){0,2}?)(?=\\s*(?:,|\\||\\bfrom\\b|\\bwith\\b|\\bat\\b|\\bof\\b|\\bcalled\\b|\\bwas\\b|\\bwith\\b|[.\\n]|$))'), function (m) { o.caller = m[1]; });
-    if (!o.company) take(cap2('\\b(?:from|with|of|at|calling\\s+for)\\s+(CAP(?:\\s+(?:CAP|&|and\\s+CAP))*)'), function (m) { o.company = m[1].replace(/\s+(?:and|&)$/, ''); });
-
-    if (!o.company && o.caller) take(cap2('^[\\s,|\\-–—(]+(CAP(?:\\s+(?:CAP|&))*)\\s*(?=[,.;)\\n]|\\s+(?:or|and|called|\\d))'), function (m) { o.company = m[1].trim(); });
-
-    if (spoke && !o.forWho) o.forWho = spoke;
-    if (prefs.length) o.extra = ((o.extra ? o.extra + '\n' : '') + prefs.join('. ').replace(/\.?$/, '.'));
-
-    // 6. compose the sentences we can
-    var who = o.caller ? first(o.caller) : 'Caller';
-    if (spoke && !o.reason) o.reason = who + ' wants to speak with ' + spoke + '.';
-    if (tr && !o.reason) o.reason = who + ' was transferred by the ' + tr.replace(/^the\s+/i, '') + '.';
-    else if (tr) o.extra = ((o.extra ? o.extra + '\n' : '') + 'Transferred by the ' + tr.replace(/^the\s+/i, '') + '.');
-    if (again) o.methods = ['Telephoned', 'Will call again'];
-    else if (cb || o.caller || o.phone) o.methods = ['Telephoned', 'Please call'];
-    if (!o.action && (cb || o.caller)) o.action = 'Please return ' + who + (/s$/i.test(who) ? '’' : '’s') + ' call' + (o.topics ? ' regarding the above matters.' : '.');
-
-    // 7. leftovers: never lose anything
-    rest = rest.replace(/\b(?:or|and)?\s*(?:(?:her|his|their|my)\s+)?(?:cell|fax|e-?mail|mobile|phone|number|website|site|see|at|is|called|phoned|calling)\s*(?:is|:)?\s*(?=[,.;]|\s*$)/gi, ' ');
-    var left = rest.replace(/[ \t]+/g, ' ').split('\n').map(function (l) { return l.replace(/^[\s,;:.|\-–—]+|[\s,;:|\-–—]+$/g, '').trim(); })
-      .filter(function (l) { return l.length > 1 && !/^(?:and|the|a|to|re|for|from|with|at|of|by)$/i.test(l); }).join('\n');
-    left = left.replace(/(?:\s*[,;.|]\s*){2,}/g, ', ').replace(/\s+,/g, ',').replace(/\s*\|\s*/g, ' ').replace(/^[\s,;:.]+|[\s,;:.]+$/g, '');
-    if (left) { if (!o.reason) o.reason = left; else o.extra = (o.extra ? o.extra + '\n' : '') + left; }
-    if (refs.length) o.refs = refs;
-    o.__cats = cats;
-    return o;
-  }
+  var parseQuick = QuickType.parse;
   function runQuick() {
     var t = $('#quick').value; if (!t.trim()) { toast('Type something first'); return; }
     readForm(); var p = parseQuick(t), n = 0;
@@ -537,7 +454,10 @@
     $('#scatterBtn').hidden = n !== 1; $('#seedAdd').hidden = n !== 2; $('#seedBack').hidden = n !== 2;
     $('#seedSub').textContent = n === 1 ? '' : 'Here’s what we found. Tick what you want added to the note. Guesses are never ticked for you.'; $('#seedSub').hidden = n === 1;
   }
-  function openSeed() { readForm(); seedStep(1); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
+  function openSeed() {
+    readForm(); seedStep(1);
+    var site = (state.refs || []).map(function (r) { return r.url || ''; }).filter(function (u) { return /^https?:\/\//i.test(u) && !/(linkedin|facebook|instagram|twitter|x\.com|youtube|google|wikipedia|longbeachny\.gov)/i.test(u); })[0];
+    if (site && !$('#seedSite').value) $('#seedSite').value = site; if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
   function closeSeed() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
   $('#birdBtn').addEventListener('click', openSeed);
   $('#seedClose').addEventListener('click', closeSeed);
@@ -552,6 +472,8 @@
   }
   function renderSeedResults() {
     var n = 0, html = '';
+    var found = seedRes.reduce(function (a, r) { return a + (r.pending ? 0 : r.suggestions.filter(function (x) { return x.apply.kind !== 'link'; }).length); }, 0), pend = seedRes.some(function (r) { return r.pending; });
+    html += '<div class="seedsum">' + (pend ? '🌱 Looking things up…' : found ? '✅ Found <b>' + found + '</b> detail' + (found === 1 ? '' : 's') + ' to review. Nothing is added until you tick it.' : '😕 Nothing to add yet. Try pasting the company <b>website</b> in the box on the previous screen.') + '</div>';
     seedRes.forEach(function (r) {
       html += '<section class="sgrp"><h3>' + r.seed.emoji + ' ' + esc(r.seed.name) + ' <em>' + esc(r.seed.does) + '</em></h3>';
       if (r.pending) html += '<p class="bb-hint">🌱 Looking…</p>';
@@ -564,6 +486,23 @@
     $('#seedResults').innerHTML = html;
     updateAddBtn();
   }
+  function seedCfg() { return { id: esel.value, keys: { firecrawl: KEYS.firecrawl, crawl4ai: KEYS.crawl4ai, scrapegraph: KEYS.scrapegraph }, c4url: KEYS.c4url }; }
+  $('#seedCheckBtn').addEventListener('click', function () {
+    var box = $('#seedCheck'); box.hidden = false; box.innerHTML = '<p class="bb-hint">🩺 Testing each look-up service from your browser…</p>';
+    BirdSeed.selfCheck({ engine: seedCfg() }).then(function (rows) {
+      var ok = rows.filter(function (r) { return r.ok; }).length;
+      box.innerHTML = '<div class="seedcheck__h">' + (ok === rows.length ? '✅ All look-up tools are working' : '⚠️ ' + ok + ' of ' + rows.length + ' tools working') + '</div>' + rows.map(function (r) {
+        return '<div class="seedcheck__r ' + (r.ok ? 'ok' : 'bad') + '"><span>' + (r.ok ? '✅' : '❌') + '</span><b>' + esc(r.name) + '</b><small>' + esc(r.detail) + ' · ' + r.ms + ' ms</small></div>';
+      }).join('');
+      box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  });
+  $('#seedDemoBtn').addEventListener('click', function () {
+    readForm();
+    if ((state.caller || state.company || state.reason) && !confirm('Replace the current note with the demo call (a real public organisation, so every seed has something to find)?')) return;
+    state = Object.assign(blank(), JSON.parse(JSON.stringify(BirdSeed.DEMO))); writeForm(); update();
+    $('#seedSite').value = ''; toast('▶ Demo loaded: City of Long Beach'); $('#scatterBtn').click();
+  });
   function updateAddBtn() { var c = $('#seedResults').querySelectorAll('input[type=checkbox]:checked').length; $('#seedAdd').textContent = c ? 'Add ' + c + ' to my note' : 'Nothing ticked'; $('#seedAdd').disabled = !c; }
   $('#seedResults').addEventListener('change', function (e) { var i = e.target.dataset.i; if (i != null && window.__seedAll) window.__seedAll[i].checked = e.target.checked; updateAddBtn(); });
 
@@ -572,7 +511,7 @@
     var ids = ui.seeds.slice(); if (!ids.length) return;
     seedRes = ids.map(function (id) { return { seed: BirdSeed.SEEDS.filter(function (x) { return x.id === id; })[0], pending: true, suggestions: [] }; });
     window.__seedAll = []; seedStep(2); renderSeedResults();
-    BirdSeed.scatter(ids, { state: JSON.parse(JSON.stringify(state)), saved: saved, city: cityEl.value, engine: { id: esel.value, keys: { firecrawl: KEYS.firecrawl, crawl4ai: KEYS.crawl4ai, scrapegraph: KEYS.scrapegraph }, c4url: KEYS.c4url } }, function (r) {
+    BirdSeed.scatter(ids, { state: JSON.parse(JSON.stringify(state)), saved: saved, city: cityEl.value, website: $('#seedSite').value, engine: { id: esel.value, keys: { firecrawl: KEYS.firecrawl, crawl4ai: KEYS.crawl4ai, scrapegraph: KEYS.scrapegraph }, c4url: KEYS.c4url } }, function (r) {
       var slot = seedRes.filter(function (x) { return x.seed.id === r.seed.id; })[0];
       slot.pending = false; slot.message = r.message; slot.suggestions = r.suggestions; slot.all = window.__seedAll;
       r.suggestions.forEach(function (x) { window.__seedAll.push(x); });
@@ -580,24 +519,7 @@
     });
   });
 
-  function applySg(a) {
-    var cur;
-    if (a.kind === 'field') {
-      cur = state[a.field] || '';
-      if (a.mode === 'ifEmpty' && cur) return 0;
-      if (a.mode === 'append') { if (cur.toLowerCase().indexOf(a.value.toLowerCase()) > -1) return 0; state[a.field] = cur ? cur + ' · ' + a.value : a.value; return 1; }
-      if (cur === a.value) return 0; state[a.field] = a.value; return 1;
-    }
-    if (a.kind === 'ref') {
-      if (state.refs.some(function (r) { return (a.url && r.url === a.url) || (a.title && r.title === a.title); })) return 0;
-      state.refs.push({ title: a.title, detail: a.detail || '', url: a.url || '' }); return 1;
-    }
-    if (a.kind === 'extra') {
-      if ((state.extra || '').indexOf(a.text) > -1) return 0;
-      state.extra = (state.extra ? state.extra + '\n' : '') + a.text; return 1;
-    }
-    return 0;
-  }
+  function applySg(a) { return BirdSeed.apply(state, a); }
   $('#seedAdd').addEventListener('click', function () {
     readForm(); var n = 0;
     (window.__seedAll || []).forEach(function (x) { if (x.checked && x.apply.kind !== 'link') n += applySg(x.apply); });
@@ -608,7 +530,6 @@
   /* ---------------- 🌤 Bird Watch: weather & time tags + weather panel ---------------- */
   var BW = BirdWatch, wxData = null, wxTimer = 0;
   var TAGS = [['when', '🗓 Day & time'], ['season', '🍂 Season'], ['weather', '🌦 Weather'], ['sun', '🌇 Sunrise & sunset'], ['holiday', '🇺🇸 Holiday']];
-  var CLEARSKY = { clearsky: 'https://sukonik.github.io/weather-app/', air: 'https://sukonik.github.io/weather-app/air-quality.html', tides: 'https://sukonik.github.io/weather-app/tides.html' };
   function allPlaces() { return BW.PLACES.concat(ui.places || []); }
   function placeById(id) { return allPlaces().filter(function (p) { return p.id === id; })[0] || BW.PLACES[0]; }
   function curPlace() { return placeById(ui.place || 'long-beach'); }
@@ -665,7 +586,13 @@
   $('#bwAuto').addEventListener('change', function () { ui.auto = this.checked; store(KEY_UI, ui); if (this.checked) scheduleTagIfStale(); });
   $('#bwPlace').addEventListener('change', function () { ui.place = this.value; store(KEY_UI, ui); fillPlaces($('#wxPlace')); refreshChip(); state.wx = null; scheduleTag(); });
 
-  // header chip + panel
+  // header chip + the full-screen Bird Watch view
+  var V = BirdWatchView, wvTab = 'now', wvAir = null, wvTides = null, wvNowcast = null;
+  var wvEl = $('#wxView');
+  function wvOpen() { return !wvEl.hidden; }
+  function nowNaive() { var d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()); }
+  function vctx() { var lt = wxData && wxData.localTime ? BW.noaaTime(String(wxData.localTime).replace('T', ' ')) : NaN; return { units: U(), nowMs: isFinite(lt) ? lt : nowNaive(), days: wxData ? wxData.days : [] }; }
+  function wvResetData() { wvAir = wvTides = wvNowcast = null; wxData = null; }
   function refreshChip() {
     var p = curPlace(), chip = $('#wxChip');
     return BW.load(p).then(function (d) {
@@ -673,37 +600,48 @@
       chip.hidden = false; chip.dataset.tone = BW.tone(n.code);
       $('#wxChipI').textContent = BW.emoji(n.code, n.day); $('#wxChipT').textContent = BW.T(n.temp, u) + BW.TU(u); $('#wxChipD').textContent = BW.describe(n.code);
       chip.setAttribute('aria-label', 'Weather in ' + p.name + ': ' + BW.describe(n.code) + ', ' + BW.T(n.temp, u) + BW.TU(u) + '. Open Bird Watch.');
-      if ($('#wxDlg').open) renderNow();
-    }, function (e) { chip.hidden = true; wxData = null; if ($('#wxDlg').open) $('#wxCurrent').innerHTML = '<p class="bb-hint">⚠ ' + esc(e.message) + '. Try again in a moment.</p>'; });
+      if (wvOpen()) { renderHero(); renderBody(); }
+    }, function (e) { chip.hidden = true; wxData = null; if (wvOpen()) { $('#wvHero').innerHTML = V.status('err', e.message + '.'); $('#wvBody').innerHTML = ''; } });
   }
-  function hrLabel(iso) { var h = +iso.slice(11, 13); return (h % 12 || 12) + (h < 12 ? 'a' : 'p'); }
-  function renderNow() {
-    var d = wxData; if (!d) return; var n = d.now, u = U();
-    $('#wxCurrent').innerHTML = '<div class="wx__big"><span class="wx__ico" aria-hidden="true">' + BW.emoji(n.code, n.day) + '</span><div><div class="wx__temp">' + BW.T(n.temp, u) + BW.TU(u) + '</div><div class="wx__desc">' + esc(BW.describe(n.code)) + ' · feels ' + BW.T(n.feels, u) + BW.TU(u) + '</div></div></div>' +
-      '<div class="wx__stats"><span>💨 ' + BW.dirName(n.dir) + ' ' + BW.S(n.wind, u) + ' ' + BW.SU(u) + '</span><span>💧 ' + Math.round(n.humidity) + '%</span><span>☔ ' + n.pop + '%</span><span>🕶 UV ' + Math.round(n.uv) + '</span><span>🌅 ' + BW.time12(d.sunrise.slice(11, 16)) + '</span><span>🌇 ' + BW.time12(d.sunset.slice(11, 16)) + '</span></div>';
-    $('#wxHours').innerHTML = d.hours.map(function (h) { return '<div class="wx__hr"><small>' + hrLabel(h.time) + '</small><i aria-hidden="true">' + BW.emoji(h.code, h.day) + '</i><b>' + BW.T(h.temp, u) + '°</b><small>' + (h.pop >= 20 ? h.pop + '%' : '&nbsp;') + '</small></div>'; }).join('');
-    $('#wxDays').innerHTML = d.days.map(function (x, i) {
-      var wd = i === 0 ? 'Today' : new Date(x.date + 'T12:00').toLocaleDateString('en-US', { weekday: 'short' });
-      return '<div class="wx__day"><span class="wx__wd">' + wd + '</span><i aria-hidden="true">' + BW.emoji(x.code, true) + '</i><span class="wx__pop">' + (x.pop >= 20 ? '☔ ' + x.pop + '%' : '') + '</span><b>' + BW.T(x.hi, u) + '°</b><span class="wx__lo">' + BW.T(x.lo, u) + '°</span></div>';
-    }).join('');
-    $('#wxFootNote').textContent = 'Tags use ' + d.place.name + '.';
+  function renderHero() {
+    var box = $('#wvHero');
+    if (!wxData) { box.innerHTML = V.status('load', 'Loading the weather for ' + curPlace().name + '…'); return; }
+    box.innerHTML = V.hero(wxData, vctx());
+    var art = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); art.setAttribute('class', 'wv-art'); art.setAttribute('viewBox', '0 0 372 96'); art.setAttribute('aria-hidden', 'true');
+    art.innerHTML = '<use class="art-ref" data-kind="strip" href="#strip-' + forest + '"/>'; box.firstChild.appendChild(art);
   }
-  var wxDlg = $('#wxDlg');
-  function showTab(t) {
-    Array.prototype.forEach.call(document.querySelectorAll('#wxTabs button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.tab === t)); });
-    $('#wxNow').hidden = t !== 'now'; $('#wxFrame').hidden = t === 'now'; $('#wxTag').hidden = t !== 'now';
-    if (t !== 'now') { var u = CLEARSKY[t], f = $('#wxIframe'); if (f.getAttribute('data-src') !== u) { f.src = u; f.setAttribute('data-src', u); } $('#wxOpen').href = u; }
+  function loadTab(t) {
+    var p = curPlace(), gone = function () { return !wvOpen() || wvTab !== t || curPlace().id !== p.id; };
+    if (t === 'rain' && wvNowcast === null) BW.loadNowcast(p).then(function (m) { wvNowcast = m; if (!gone()) renderBody(); });
+    if (t === 'aqi' && !wvAir) BW.loadAir(p).then(function (a) { wvAir = a; if (!gone()) renderBody(); }, function (e) { if (!gone()) $('#wvBody').innerHTML = V.status('err', e.message + '.'); });
+    if (t === 'tides' && !wvTides) BW.loadTides(p).then(function (x) { wvTides = x; if (!gone()) renderBody(); }, function (e) { if (!gone()) $('#wvBody').innerHTML = V.status('err', e.message + '.'); });
   }
-  function openWx(tab) { readForm(); showTab(tab || 'now'); fillPlaces($('#wxPlace')); closeDrawer(); if (wxData) renderNow(); else refreshChip(); if (wxDlg.showModal) wxDlg.showModal(); else wxDlg.setAttribute('open', ''); }
-  function closeWx() { if (wxDlg.close) wxDlg.close(); else wxDlg.removeAttribute('open'); }
+  function renderBody() {
+    var body = $('#wvBody'), c = vctx();
+    if (wvTab === 'tides') { if (!wvTides) { body.innerHTML = V.status('load', 'Reading the tide tables for ' + curPlace().name + '…'); loadTab('tides'); return; } body.innerHTML = V.tides(wvTides, c); return; }
+    if (wvTab === 'aqi') { if (!wvAir) { body.innerHTML = V.status('load', 'Checking the air quality…'); loadTab('aqi'); return; } body.innerHTML = V.aqi(wvAir, c); return; }
+    if (!wxData) { body.innerHTML = ''; return; }
+    if (wvTab === 'rain') { if (wvNowcast === null) loadTab('rain'); body.innerHTML = V.rain(wxData, c, wvNowcast || []); return; }
+    body.innerHTML = wvTab === 'uv' ? V.uv(wxData, c) : V.now(wxData, c);
+  }
+  function setTabs() { Array.prototype.forEach.call(document.querySelectorAll('#wxTabs button'), function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === wvTab)); }); }
+  function openWx(tab) {
+    readForm(); closeDrawer(); closePop(); wvTab = tab || 'now'; fillPlaces($('#wxPlace')); syncUnits(); setTabs();
+    wvEl.hidden = false; document.body.classList.add('wv-open'); renderHero(); renderBody(); if (!wxData) refreshChip();
+    $('#wvScroll').scrollTop = 0; $('#wxClose').focus();
+  }
+  function closeWx() { wvEl.hidden = true; document.body.classList.remove('wv-open'); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && wvOpen()) closeWx(); });
   $('#wxChip').addEventListener('click', function () { openWx('now'); });
   $('#mWx').addEventListener('click', function () { openWx('now'); });
   $('#wxClose').addEventListener('click', closeWx);
-  wxDlg.addEventListener('click', function (e) { if (e.target === wxDlg) closeWx(); });
-  $('#wxTabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
-  $('#wxPlace').addEventListener('change', function () { ui.place = this.value; store(KEY_UI, ui); fillPlaces($('#bwPlace')); wxData = null; $('#wxCurrent').innerHTML = '<p class="bb-hint">Loading weather…</p>'; refreshChip(); state.wx = null; scheduleTag(); });
+  $('#wxTabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; wvTab = b.dataset.tab; setTabs(); renderBody(); });
+  $('#wvBody').addEventListener('click', function (e) { if (e.target.closest('[data-retry]')) { wvTides = wvAir = null; renderBody(); } });
+  $('#wvHero').addEventListener('click', function (e) { if (e.target.closest('[data-retry]')) refreshChip(); });
+  $('#wxPlace').addEventListener('change', function () { ui.place = this.value; store(KEY_UI, ui); fillPlaces($('#bwPlace')); wvResetData(); renderHero(); renderBody(); refreshChip(); state.wx = null; scheduleTag(); });
   $('#wxUnits').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return; ui.units = b.dataset.u; store(KEY_UI, ui); syncUnits(); if (wxData) { renderNow(); refreshChip(); } renderPane();
+    var b = e.target.closest('button'); if (!b) return; ui.units = b.dataset.u; store(KEY_UI, ui); syncUnits();
+    if (wxData) refreshChip(); if (wvOpen()) { renderHero(); renderBody(); } renderPane();
   });
   function syncUnits() { Array.prototype.forEach.call(document.querySelectorAll('#wxUnits button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.u === U())); }); }
   syncUnits();
@@ -719,7 +657,7 @@
   $('#wxSearch').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
   function pickPlace(r) {
     ui.places = (ui.places || []).filter(function (p) { return p.id !== r.id; }).concat([r]).slice(-6); ui.place = r.id; store(KEY_UI, ui);
-    fillPlaces($('#wxPlace')); fillPlaces($('#bwPlace')); $('#wxResults').hidden = true; $('#wxSearch').value = ''; wxData = null; refreshChip(); state.wx = null; scheduleTag();
+    fillPlaces($('#wxPlace')); fillPlaces($('#bwPlace')); $('#wxResults').hidden = true; $('#wxSearch').value = ''; wvResetData(); renderHero(); renderBody(); refreshChip(); state.wx = null; scheduleTag();
   }
   $('#wxResults').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) pickPlace(this._list[+b.dataset.i]); });
   $('#wxGeo').addEventListener('click', function () {
