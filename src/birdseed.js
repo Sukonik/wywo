@@ -105,7 +105,7 @@
   function req(ctx, url, opts, mode, ms) {
     opts = opts || {};
     return reqOnce(ctx, url, Object.assign({}, opts), mode, ms).catch(function (e) {
-      if (e && (e.status === 429 || e.status === 503)) return new Promise(function (ok) { setTimeout(ok, ctx.retryDelay == null ? 1500 : ctx.retryDelay); }).then(function () { return reqOnce(ctx, url, Object.assign({}, opts), mode, ms); });
+      if (e && (e.status === 429 || e.status === 503 || (e.status == null && !/abort/i.test(e.name || '')))) return new Promise(function (ok) { setTimeout(ok, ctx.retryDelay == null ? 1500 : ctx.retryDelay); }).then(function () { return reqOnce(ctx, url, Object.assign({}, opts), mode, ms); });
       throw e;
     });
   }
