@@ -92,11 +92,11 @@ test('🖼 hero: gauge, verdict, best window and the current conditions', async 
   assert.match(h, /data-tone="(prime|good)"/); assert.match(t, /WATCH SCORE/); assert.match(t, /Lovely out|Good conditions/); assert.match(t, /Best window \d+:00 [AP]M to \d+:00 [AP]M/); assert.match(t, /58°F/); assert.match(t, /Partly cloudy · feels 55°F/); assert.match(t, /Long Beach, NY/);
   const doc1 = doc(h); const dash = doc1.querySelector('.wv-gauge__val').getAttribute('stroke-dasharray'); assert.match(dash, /^\d+ 100$/); assert.ok(doc1.querySelector('.wv-gauge__bird use[href="#wywo-mark"]'), 'the bluebird is the gauge marker');
 });
-test('🖼 now: six tiles with segment bars, a wind compass with the bluebird, a 24 h chart and 7 days', async () => {
+test('🖼 now: six tiles with segment bars, a wind compass arrow, a 24 h chart and 7 days', async () => {
   const d = await load(), n = doc(V.now(d, ctx()));
   assert.equal(n.querySelectorAll('.wv-tile').length, 6); assert.equal(n.querySelectorAll('.wv-segs').length, 5); assert.equal(n.querySelectorAll('.wv-day').length, 7);
   assert.equal(n.querySelector('.wv-days .wv-day__w').textContent, 'Today'); assert.ok(n.querySelector('svg.wv-chart .wv-ch__line')); assert.ok(n.querySelector('svg.wv-chart text.wv-ch__ico'));
-  assert.equal(n.querySelector('.wv-compass__bird').getAttribute('transform'), 'translate(100 100) rotate(45)', 'NW wind (from 315°) blows toward the SE → bird heads 135° bearing → rotate 45');
+  assert.equal(n.querySelector('.wv-compass__arrow').getAttribute('transform'), 'translate(100 100) rotate(135)', 'NW wind (from 315°) blows toward the SE → the arrow points 135° clockwise from north');
   const tiles = text(V.now(d, ctx())); assert.match(tiles, /Wind 6mph Gusts 10/); assert.match(tiles, /Sunset 4:37PM Rise 6:30 AM/);
 });
 test('🖼 units: metric converts temperature, wind, rain and tide heights everywhere', async () => {
@@ -159,4 +159,22 @@ test('🔁 one dropped connection or a brief 429 does not lose the weather (retr
   sessionStorage.clear(); n = 0; const bad = async () => { n++; return { ok: false, status: 400, json: async () => ({}) }; };
   await assert.rejects(BW.load(BW.PLACES[0], bad), /returned 400/); assert.equal(n, 1, 'a 400 is not retried');
   globalThis.BirdWatchRetryMs = undefined;
+});
+
+test('👕 What to wear and light & daylight advice follow the conditions', () => {
+  const cold = BW.dress({ feels: 30, wind: 20, gust: 32, pop: 70, precip: 0, uv: 1, day: true }).join(' ');
+  assert.match(cold, /Cold: warm coat/); assert.match(cold, /Very gusty/); assert.match(cold, /Rain likely/); assert.match(cold, /Binoculars/);
+  const hot = BW.dress({ feels: 90, wind: 3, gust: 5, pop: 0, uv: 9, day: true }).join(' ');
+  assert.match(hot, /Hot:/); assert.match(hot, /Strong sun/); assert.doesNotMatch(hot, /Rain/);
+  const day = { sunrise: '2026-11-07T06:31', sunset: '2026-11-07T16:44' };
+  assert.match(BW.daylightTips(day, '2026-11-07T13:00')[0], /Daylight now, with about 3\.7 hours/);
+  assert.match(BW.daylightTips(day, '2026-11-07T16:30')[0], /Golden hour: sunset is at 4:44 PM/);
+  assert.ok(BW.daylightTips(day, '2026-11-07T16:30').some(t => /Lights on/.test(t)));
+  assert.match(BW.daylightTips(day, '2026-11-07T20:00')[0], /After dark/); assert.match(BW.daylightTips(day, '2026-11-07T05:00')[0], /Before dawn.*6:31 AM/);
+  assert.match(BW.daylightTips({ sunrise: '06:31', sunset: '16:44' }, '2026-11-07T13:00')[0], /Daylight now/, 'accepts HH:MM too');
+});
+test('🕒 Now screen shows hourly score bars, wear tips and daylight card', async () => {
+  const d = await load(); const html = V.now(d, ctx()), t = text(html);
+  assert.equal((html.match(/class="wv-hr"/g) || []).length, 12); assert.match(t, /What to wear/); assert.match(t, /Light & daylight/); assert.match(t, /Binoculars/); assert.match(t, /B-04/);
+  assert.match(html, /wv-compass__arrow/);
 });

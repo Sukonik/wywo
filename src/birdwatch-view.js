@@ -14,6 +14,7 @@
   function hourLbl(iso) { var h = +String(iso).slice(11, 13); return (h % 12 || 12) + (h < 12 ? 'a' : 'p'); }
   function segs(p) { var n = Math.round(Math.max(0, Math.min(1, p)) * 10), o = ''; for (var i = 0; i < 10; i++) o += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return '<div class="wv-segs" aria-hidden="true">' + o + '</div>'; }
   function tile(label, val, unit, sub, bar) { return '<div class="wv-tile"><span class="wv-tile__l">' + esc(label) + '</span><span class="wv-tile__v">' + val + (unit ? '<small>' + esc(unit) + '</small>' : '') + '</span><span class="wv-tile__s">' + esc(sub) + '</span>' + (bar || '') + '</div>'; }
+  function head(n, title) { return '<h3 class="wv-h"><span class="wv-h__n">' + n + '</span><span>' + esc(title) + '</span></h3>'; }
   function wd(date, i) { return i === 0 ? 'Today' : new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }); }
 
   /* ---------------- gauge (the bluebird rides the arc) ---------------- */
@@ -32,7 +33,7 @@
     return '<div class="wv-compass"><svg viewBox="0 0 200 200" role="img" aria-label="Wind from the ' + BW.dirName(dir) + ' at ' + BW.S(wind, u) + ' ' + BW.SU(u) + '">' +
       '<circle class="wv-compass__ring" cx="100" cy="100" r="92"/><g class="wv-compass__ticks">' + ticks + '</g>' +
       '<text x="100" y="28" text-anchor="middle">N</text><text x="176" y="105" text-anchor="middle">E</text><text x="100" y="182" text-anchor="middle">S</text><text x="24" y="105" text-anchor="middle">W</text>' +
-      '<g class="wv-compass__bird" transform="translate(100 100) rotate(' + (to - 90) + ')"><use href="#wywo-mark" x="-30" y="-30" width="60" height="60"/></g></svg>' +
+      '<g class="wv-compass__arrow" transform="translate(100 100) rotate(' + to + ')"><path d="M0 -64 L13 -40 H4.5 V34 H-4.5 V-40 H-13 Z"/><circle r="5"/></g></svg>' +
       '<div class="wv-compass__t"><b>' + BW.dirName(dir) + ' ' + BW.S(wind, u) + ' ' + BW.SU(u) + '</b><small>gusts ' + BW.S(gust || wind, u) + '</small></div></div>';
   }
 
@@ -90,8 +91,17 @@
     var days = d.days.map(function (x, i) {
       return '<div class="wv-day"><span class="wv-day__w">' + wd(x.date, i) + '</span><i aria-hidden="true">' + BW.emoji(x.code, true) + '</i><span class="wv-day__p">' + (x.pop >= 20 ? '☔ ' + x.pop + '%' : '') + '</span><b>' + BW.T(x.hi, u) + '°</b><span class="wv-day__lo">' + BW.T(x.lo, u) + '°</span></div>';
     }).join('');
-    return '<div class="wv-grid"><div class="wv-card wv-tiles">' + tiles + '</div><div class="wv-card">' + '<h3 class="wv-h">Wind</h3>' + compass(n.dir, n.wind, n.gust, u) + '</div></div>' +
-      '<div class="wv-card"><h3 class="wv-h">Next 24 hours</h3>' + hoursChart(d.hours, u) + '</div><div class="wv-card"><h3 class="wv-h">7 days</h3><div class="wv-days">' + days + '</div></div>';
+    var strip = d.hours.slice(0, 12).map(function (h, i) {
+      var sc = BW.watchScore(h);
+      return '<div class="wv-hr" data-tone="' + sc.tone + '"><span class="wv-hr__t">' + (i === 0 ? 'Now' : hourLbl(h.time)) + '</span><i aria-hidden="true">' + BW.emoji(h.code, h.day) + '</i><div class="wv-hr__bar" aria-hidden="true"><b style="height:' + Math.max(8, sc.score) + '%"></b></div><span class="wv-hr__s" title="Watch score">' + sc.score + '</span><span class="wv-hr__m">' + BW.T(h.temp, u) + '°</span><span class="wv-hr__m">' + BW.dirName(h.dir) + ' ' + BW.S(h.wind, u) + '</span><span class="wv-hr__m">' + Math.round(h.pop) + '%</span></div>';
+    }).join('');
+    var lis = function (a) { return '<ul class="wv-tips">' + a.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'; };
+    var nowIso = String(n.time || d.hours[0].time);
+    return '<div class="wv-grid"><div class="wv-card wv-tiles">' + tiles + '</div><div class="wv-card">' + head('B-02', 'Wind') + compass(n.dir, n.wind, n.gust, u) + '</div></div>' +
+      '<div class="wv-card">' + head('B-03', 'Next hours') + '<div class="wv-strip">' + strip + '</div><p class="wv-note">The bar is the Watch score for that hour. Scroll sideways for more.</p></div>' +
+      '<div class="wv-grid"><div class="wv-card">' + head('B-04', 'What to wear') + '<p class="wv-sub">Based on feels-like ' + BW.T(n.feels, u) + BW.TU(u) + ' right now</p>' + lis(BW.dress(n)) + '</div>' +
+      '<div class="wv-card">' + head('B-05', 'Light & daylight') + '<p class="wv-sub">Sunrise <b>' + clock(d0.sunrise) + '</b> · Sunset <b>' + clock(d0.sunset) + '</b></p>' + lis(BW.daylightTips(d0, nowIso)) + '</div></div>' +
+      '<div class="wv-card">' + head('B-06', 'Temperature, next 24 hours') + hoursChart(d.hours, u) + '</div><div class="wv-card">' + head('B-07', '7 days') + '<div class="wv-days">' + days + '</div></div>';
   }
 
   /* ---------------- RAIN ---------------- */
