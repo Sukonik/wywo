@@ -2,6 +2,10 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.10.2] — 2026-11-07 🧹
+### Fixed
+- 🧹 **Stale page on phones:** the site's CSS/JS links are now stamped with the build id, so phones load the newest Bird Watch instead of an old cached copy (the footer shows the version you’re on). If you still see the old ClearSky tab, reload once.
+
 ## [0.10.1] — 2026-11-07 🔁
 ### Fixed
 - 🔁 **Bird Watch and Bird Seed retry once** after a dropped connection or a brief rate limit (429/5xx), so the weather chip no longer vanishes on a hiccup; real errors (e.g. 400) still show immediately. 92 tests.
