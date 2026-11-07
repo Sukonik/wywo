@@ -673,3 +673,22 @@ body.wv-open { overflow: hidden; }
 
 .seed__head > .art--dlg { width: 120px; right: 3.1rem; top: -16px; opacity: .15; }
 @media (max-width: 760px) { .seed__head > .art--dlg { width: 96px; right: 3rem; } }
+
+/* ---- v0.11.0 Bird Watch: RideWeather-style cards (numbered mono headers, hourly score bars, tips) ---- */
+.wv-h { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; letter-spacing: .16em; }
+.wv-h__n { color: var(--bb-accent, var(--bb-primary)); font-weight: 700; }
+.wv-tile__l { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .16em; }
+.wv-sub { margin: -.2rem 0 .6rem; color: var(--bb-text-2); font-size: 13.5px; } .wv-note { margin: .6rem 0 0; font-size: 12px; color: var(--bb-text-3); }
+.wv-tips { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
+.wv-tips li { position: relative; padding-left: 1.6rem; line-height: 1.45; font-size: 15px; }
+.wv-tips li::before { content: ""; position: absolute; left: .15rem; top: .42em; width: .5rem; height: .85rem; border: solid var(--bb-primary); border-width: 0 2.5px 2.5px 0; transform: rotate(40deg) scale(.85); transform-origin: center; }
+.wv-strip { display: flex; gap: .55rem; overflow-x: auto; padding: .2rem .1rem .5rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.wv-hr { flex: 0 0 4.4rem; scroll-snap-align: start; display: grid; justify-items: center; gap: .3rem; padding: .6rem .3rem .7rem; border: 1px solid var(--bb-border); border-radius: 16px; background: var(--bb-surface-2); --tone: #2e9d5b; }
+.wv-hr[data-tone="good"] { --tone: #7fae22; } .wv-hr[data-tone="fair"] { --tone: #e3a008; } .wv-hr[data-tone="stay"] { --tone: #d64545; }
+.wv-hr__t { font: 700 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--bb-text-2); } .wv-hr > i { font-style: normal; font-size: 1.3rem; line-height: 1; }
+.wv-hr__bar { width: 1.35rem; height: 4.5rem; border-radius: 999px; background: var(--bb-border); display: flex; align-items: flex-end; overflow: hidden; }
+.wv-hr__bar b { width: 100%; border-radius: 999px; background: repeating-linear-gradient(to top, var(--tone) 0 4px, color-mix(in srgb, var(--tone) 55%, transparent) 4px 5px); }
+.wv-hr__s { font: 800 1.05rem var(--bb-font); font-variant-numeric: tabular-nums; } .wv-hr__m { font: 600 11.5px ui-monospace, "SF Mono", Menlo, monospace; color: var(--bb-text-3); white-space: nowrap; }
+.wv-compass__arrow { fill: var(--bb-primary); transition: transform .9s cubic-bezier(.22,.8,.24,1); } .wv-compass__arrow circle { fill: var(--bb-surface); stroke: var(--bb-primary); stroke-width: 2.5; }
+@media (prefers-reduced-motion: reduce) { .wv-compass__arrow { transition: none; } }
+.wv__tabs { background: var(--bb-surface); backdrop-filter: none; }

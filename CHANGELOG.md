@@ -2,6 +2,14 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.11.0] — 2026-11-07 🧭
+### Changed: Bird Watch looks and reads like Ride Weather
+- 🔢 Numbered cards with mono-spaced headers (B-01…B-07) and mono labels on the tiles
+- 🧭 **Wind compass** now has a clear arrow showing where the wind blows
+- ⏱ **Next hours** strip: scrollable cards with weather, a striped **Watch score** bar, temp, wind and rain chance for each hour
+- 👕 **What to wear** (feels-like, gusts, rain chance, UV) and 🌅 **Light & daylight** advice cards
+- Fixed page text showing through the sticky tab bar. 94 tests.
+
 ## [0.10.2] — 2026-11-07 🧹
 ### Fixed
 - 🧹 **Stale page on phones:** the site's CSS/JS links are now stamped with the build id, so phones load the newest Bird Watch instead of an old cached copy (the footer shows the version you’re on). If you still see the old ClearSky tab, reload once.

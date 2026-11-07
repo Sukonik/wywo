@@ -218,6 +218,28 @@
     var tone = s >= 80 ? 'prime' : s >= 60 ? 'good' : s >= 40 ? 'fair' : 'stay';
     return { score: s, tone: tone, label: { prime: 'Prime', good: 'Good', fair: 'Fair', stay: 'Stay in' }[tone] };
   }
+  // What to wear / bring, from feels-like °F, wind mph, gust mph, rain %, UV (all imperial inputs).
+  function dress(p) {
+    var f = p.feels != null ? p.feels : p.temp, out = [], g = p.gust || p.wind || 0;
+    out.push(f < 25 ? 'Frigid: insulated coat, hat, gloves and a scarf.' : f < 40 ? 'Cold: warm coat, hat and gloves.' : f < 55 ? 'Cool: a jacket and a warm layer underneath.' : f < 70 ? 'Mild: a light layer you can take off.' : f < 82 ? 'Warm: light, breathable clothes.' : 'Hot: light clothes, shade and plenty of water.');
+    if (g >= 30) out.push('Very gusty: secure hats and papers, and stay clear of trees and signs.'); else if (g >= 20) out.push('Gusty: a windbreaker helps, and hold on to loose paper.');
+    if (p.precip > 0.01 || (p.pop || 0) >= 60) out.push('Rain likely: bring a rain jacket or umbrella.'); else if ((p.pop || 0) >= 30) out.push('A chance of rain: keep a small umbrella handy.');
+    if (p.uv >= 6) out.push('Strong sun: sunglasses, a hat and sunscreen.'); else if (p.uv >= 3 && p.day !== false) out.push('Sunglasses are a good idea.');
+    out.push('Binoculars, a charged phone and a water bottle.');
+    return out;
+  }
+  // Daylight guidance from a day object ({sunrise, sunset} as local ISO) and the current local ISO time.
+  function daylightTips(day, nowIso) {
+    var hm = function (v) { var x = /(\d{1,2}):(\d{2})(?!.*\d:\d)/.exec(String(v)); return x ? [+x[1], +x[2]] : [0, 0]; }, m = function (v) { var q = hm(v); return q[0] * 60 + q[1]; },
+      t12 = function (v) { var q = hm(v); return time12(q[0] + ':' + (q[1] < 10 ? '0' : '') + q[1]); }, now = m(nowIso), rise = m(day.sunrise), set = m(day.sunset), out = [];
+    if (now < rise - 30) out.push('Before dawn. First light is around ' + t12(day.sunrise) + '.');
+    else if (now < rise + 90) out.push('Early light: the best birdsong and softest light of the day.');
+    else if (now < set - 90) out.push('Daylight now, with about ' + Math.round((set - now) / 6) / 10 + ' hours until sunset.');
+    else if (now < set + 15) out.push('Golden hour: sunset is at ' + t12(day.sunset) + '. Head in soon.');
+    else out.push('After dark. Take a flashlight and wear something bright.');
+    if (now >= set - 45 && now < set + 30) out.push('Lights on if you are out within 45 minutes of dark.');
+    return out;
+  }
   function verdict(tone) { return { prime: 'Lovely out. A great time to be outside.', good: 'Good conditions. Mind the wind.', fair: 'Fine if you dress for it.', stay: 'Better kept indoors for now.' }[tone]; }
   // best two-hour DAYLIGHT stretch in the next 24 hours -> { i, avg } (index of the first hour)
   function bestWindow(hours) {
@@ -316,7 +338,7 @@
   function ftToUnit(ft, u) { return u === 'metric' ? +(ft * 0.3048).toFixed(2) : +(+ft).toFixed(1); }
   function lenUnit(u) { return u === 'metric' ? 'm' : 'ft'; }
 
-  root.BirdWatch = { watchScore: watchScore, verdict: verdict, bestWindow: bestWindow, rainOutlook: rainOutlook, uvInfo: uvInfo, aqiInfo: aqiInfo, loadAir: loadAir, loadNowcast: loadNowcast,
+  root.BirdWatch = { dress: dress, daylightTips: daylightTips, watchScore: watchScore, verdict: verdict, bestWindow: bestWindow, rainOutlook: rainOutlook, uvInfo: uvInfo, aqiInfo: aqiInfo, loadAir: loadAir, loadNowcast: loadNowcast,
     tideStation: tideStation, loadTides: loadTides, tideAt: tideAt, tideCurve: tideCurve, tideNow: tideNow, noaaTime: noaaTime, ftToUnit: ftToUnit, lenUnit: lenUnit, km: km, UV_LEVELS: UV_LEVELS, AQI_LEVELS: AQI_LEVELS, PLACES: PLACES, load: load, at: at, search: search, describe: describe, emoji: emoji, tone: tone, dirName: dirName, T: T, TU: TU, S: S, SU: SU, time12: time12, daypart: daypart, season: season, holidayNear: holidayNear, whenLabel: whenLabel, conditions: conditions, ymd: ymd };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.BirdWatch;
 })(typeof window !== 'undefined' ? window : globalThis);
