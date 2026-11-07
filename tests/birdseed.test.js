@@ -325,3 +325,9 @@ test('▶ the real demo call lets every website seed find real details', async (
   const total = res.reduce((n, r) => n + r.suggestions.filter(s => s.apply.kind !== 'link').length, 0); assert.ok(total >= 12, 'demo yields at least 12 real findings, got ' + total);
 });
 function wd0() { return [/wbsearchentities/, () => ({ search: [] })]; }
+
+test('🔁 a dropped connection is retried once by the look-up engine too', async () => {
+  let n = 0; const f = async (url) => { if (/wbsearchentities/.test(url) && ++n === 1) throw new TypeError('network dropped'); return { ok: true, status: 200, json: async () => /wbsearchentities/.test(url) ? { search: [{ id: 'Q9', label: 'Acme', description: 'Anvils' }] } : { entities: { Q9: { claims: {}, sitelinks: {} } } } }; };
+  const res = await BirdSeed.scatter(['corn'], { state: emptyState({ company: 'Acme' }), saved: [], fetch: f, retryDelay: 0, engine: { id: 'reader', keys: {} } });
+  assert.equal(n, 2); assert.equal(res[0].suggestions[0].apply.title, 'Acme');
+});

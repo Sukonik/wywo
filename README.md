@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.10.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.1-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -294,7 +294,7 @@ Built phone-first, with the same features as desktop:
 
 How the site has grown: ten releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.10.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.10.0 · build a1b2c3d`).
+Current version: **0.10.1**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.10.1 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|

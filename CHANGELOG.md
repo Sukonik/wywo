@@ -2,6 +2,10 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.10.1] — 2026-11-07 🔁
+### Fixed
+- 🔁 **Bird Watch and Bird Seed retry once** after a dropped connection or a brief rate limit (429/5xx), so the weather chip no longer vanishes on a hiccup; real errors (e.g. 400) still show immediately. 92 tests.
+
 ## [0.10.0] — 2026-11-07 🌲
 ### Changed: Bird Watch 2.0 (no more embedded pages)
 - 🎯 Rebuilt as a **full-screen, forest-themed weather view** in the spirit of the Bike Club’s Ride Weather: a **Watch score** gauge (the bluebird rides the arc), verdict and **best daylight window**

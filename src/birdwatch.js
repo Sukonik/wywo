@@ -69,17 +69,24 @@
   function tone(code) { return code === 0 || code <= 2 ? 'clear' : code === 3 || code === 45 || code === 48 ? 'cloud' : code >= 95 ? 'storm' : (code >= 71 && code <= 77) || code === 85 || code === 86 ? 'snow' : 'rain'; }
 
   /* ---------------- network (cached, aborting) ---------------- */
-  function getJson(url, ms, fetchFn) {
-    var key = 'wywo.bw.' + url;
-    try { var hit = JSON.parse(sessionStorage.getItem(key)); if (hit && Date.now() - hit.t < CACHE_MS) return Promise.resolve(hit.raw); } catch (e) {}
+  function getJsonOnce(url, ms, fetchFn) {
     var f = fetchFn || (root.fetch && root.fetch.bind(root)); if (!f) return Promise.reject(new Error('no network'));
     var ac = typeof AbortController !== 'undefined' ? new AbortController() : null, t = ac && setTimeout(function () { ac.abort(); }, ms || 10000);
     return f(url, ac ? { signal: ac.signal } : {}).then(function (r) {
       if (t) clearTimeout(t);
-      if (!r.ok) throw new Error('Weather service returned ' + r.status);
+      if (!r.ok) { var e = new Error('Weather service returned ' + r.status); e.status = r.status; throw e; }
       return r.json();
-    }, function (e) { if (t) clearTimeout(t); throw new Error(e && e.name === 'AbortError' ? 'Weather service timed out' : 'Couldn’t reach the weather service'); })
-      .then(function (raw) { try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), raw: raw })); } catch (e) {} return raw; });
+    }, function (e) { if (t) clearTimeout(t); var ne = new Error(e && e.name === 'AbortError' ? 'Weather service timed out' : 'Couldn’t reach the weather service'); ne.transient = true; throw ne; });
+  }
+  // One dropped connection or a brief rate limit must not make the weather vanish: retry once.
+  var RETRY_MS = 1200;
+  function getJson(url, ms, fetchFn) {
+    var key = 'wywo.bw.' + url;
+    try { var hit = JSON.parse(sessionStorage.getItem(key)); if (hit && Date.now() - hit.t < CACHE_MS) return Promise.resolve(hit.raw); } catch (e) {}
+    return getJsonOnce(url, ms, fetchFn).catch(function (e) {
+      if (!(e.transient || e.status === 429 || e.status >= 500)) throw e;
+      return new Promise(function (ok) { setTimeout(ok, root.BirdWatchRetryMs != null ? root.BirdWatchRetryMs : RETRY_MS); }).then(function () { return getJsonOnce(url, ms, fetchFn); });
+    }).then(function (raw) { try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), raw: raw })); } catch (e) {} return raw; });
   }
 
   /* ---------------- hourly rows ---------------- */
