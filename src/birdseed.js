@@ -473,6 +473,46 @@
     });
   };
 
+  /* ---------------- search links (no keys, nothing is sent from WYWO: each opens the site's own search) ---------------- */
+  function searchLinks(state) {
+    state = state || {}; var q = encodeURIComponent, out = [], name = cleanName(state.caller || ''), co = (state.company || '').trim(), ph = digits(state.phone).replace(/^1(?=\d{10}$)/, ''),
+      em = ((state.alt || '') + ' ' + (state.extra || '') + ' ' + (state.reason || '')).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    var add = function (group, label, icon, url, why) { out.push({ group: group, label: label, icon: icon, url: url, why: why }); };
+    var g = function (t) { return 'https://www.google.com/search?q=' + q(t); };
+    if (name) {
+      var nc = co ? name + ' ' + co : name;
+      add('Person', 'Google', '🔎', g('"' + name + '"' + (co ? ' "' + co + '"' : '')), 'Web results for ' + nc);
+      add('Person', 'LinkedIn', '💼', 'https://www.linkedin.com/search/results/people/?keywords=' + q(nc), 'People on LinkedIn matching ' + nc);
+      add('Person', 'Facebook', '👥', 'https://www.facebook.com/search/people/?q=' + q(name), 'People on Facebook named ' + name);
+      add('Person', 'X / Twitter', '🐦', 'https://x.com/search?f=user&q=' + q(name), 'Accounts named ' + name);
+    }
+    if (co) {
+      add('Company', 'Google', '🔎', g('"' + co + '"'), 'Web results for ' + co);
+      add('Company', 'LinkedIn', '💼', 'https://www.linkedin.com/search/results/companies/?keywords=' + q(co), 'Company pages named ' + co);
+      add('Company', 'Facebook', '👥', 'https://www.facebook.com/search/pages/?q=' + q(co), 'Facebook pages for ' + co);
+      add('Company', 'Google Maps', '📍', 'https://www.google.com/maps/search/?api=1&query=' + q(co + (state.city ? ' ' + state.city : '')), 'Where ' + co + ' is');
+      add('Company', 'OpenCorporates', '🏛', 'https://opencorporates.com/companies?q=' + q(co), 'Official business registrations');
+      add('Company', 'Better Business Bureau', '🛡', 'https://www.bbb.org/search?find_text=' + q(co), 'Ratings and complaints');
+    }
+    if (ph.length === 10) { var pretty = ph.slice(0, 3) + '-' + ph.slice(3, 6) + '-' + ph.slice(6); add('Phone', 'Google this number', '📞', g('"' + pretty + '" OR "(' + ph.slice(0, 3) + ') ' + ph.slice(3, 6) + '-' + ph.slice(6) + '"'), 'Who else lists ' + pretty); }
+    if (em) add('Email', 'Google this email', '✉️', g('"' + em[0] + '"'), 'Where ' + em[0] + ' appears online');
+    return out;
+  }
+
+  /* ---------------- Zapier: send the note to the person's own Zap (opt-in, only when they press the button) ---------------- */
+  var ZAP_RE = /^https:\/\/hooks\.zapier\.com\/hooks\/catch\/\d+\/[A-Za-z0-9]+\/?$/;
+  function zapPayload(state) {
+    state = state || {};
+    return { source: 'WYWO', sent_at: new Date().toISOString(), call_for: state.forWho || 'Check with team', urgent: !!state.urgent, date: state.date || '', time: state.time || '', caller: state.caller || '', company: state.company || '', phone: state.phone || '', alt_contact: state.alt || '', methods: (state.methods || []).join(', '), reason: state.reason || '', topics: state.topics || '', action: state.action || '', notes: state.extra || '', references: (state.refs || []).map(function (r) { return (r.title || '') + (r.detail ? ' — ' + r.detail : '') + (r.url ? ' (' + r.url + ')' : ''); }).join('\n') };
+  }
+  // Zapier "Catch Hook" URLs don't allow browser reads, so the reply is opaque: we can only say it was handed over.
+  function sendZap(url, state, fetchFn) {
+    url = String(url || '').trim();
+    if (!ZAP_RE.test(url)) return Promise.reject(new Error('That doesn’t look like a Zapier Catch Hook URL (https://hooks.zapier.com/hooks/catch/…).'));
+    var f = fetchFn || (root.fetch && root.fetch.bind(root)); if (!f) return Promise.reject(new Error('no network'));
+    return f(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(zapPayload(state)) }).then(function () { return { sent: true }; }, function () { throw new Error('Couldn’t reach Zapier. Check your connection and the hook URL.'); });
+  }
+
   /* ---------------- runner ---------------- */
   function previous(state, saved) {
     var d = digits(state.phone).replace(/^1(?=\d{10}$)/, ''), c = norm(state.caller), co = norm(state.company);
@@ -531,6 +571,6 @@
     }));
   }
 
-  root.BirdSeed = { DEMO: DEMO, selfCheck: selfCheck, apply: applySuggestion, SEEDS: SEEDS, ENGINES: ENGINES, scatter: scatter, _t: { cleanName: cleanName, analyse: analyse, parseHtml: parseHtml, parseMarkdown: parseMarkdown, fromStructured: fromStructured, ENGINE: ENGINE, slugVariants: slugVariants, previous: previous } };
+  root.BirdSeed = { searchLinks: searchLinks, zapPayload: zapPayload, sendZap: sendZap, DEMO: DEMO, selfCheck: selfCheck, apply: applySuggestion, SEEDS: SEEDS, ENGINES: ENGINES, scatter: scatter, _t: { cleanName: cleanName, analyse: analyse, parseHtml: parseHtml, parseMarkdown: parseMarkdown, fromStructured: fromStructured, ENGINE: ENGINE, slugVariants: slugVariants, previous: previous } };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.BirdSeed;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -692,3 +692,9 @@ body.wv-open { overflow: hidden; }
 .wv-compass__arrow { fill: var(--bb-primary); transition: transform .9s cubic-bezier(.22,.8,.24,1); } .wv-compass__arrow circle { fill: var(--bb-surface); stroke: var(--bb-primary); stroke-width: 2.5; }
 @media (prefers-reduced-motion: reduce) { .wv-compass__arrow { transition: none; } }
 .wv__tabs { background: var(--bb-surface); backdrop-filter: none; }
+
+/* ---- v0.12.0 Bird Seed: look it up yourself + Zapier ---- */
+.seed-find { border: 1px solid var(--bb-border); border-radius: 16px; padding: .8rem .9rem; margin: .2rem 0 .8rem; background: var(--bb-surface-2); }
+.seed-find__h { margin: 0 0 .5rem; font-size: 14px; display: grid; gap: .1rem; } .seed-find__h em { font-style: normal; font-weight: 500; font-size: 12.5px; color: var(--bb-text-3); }
+.seed-find__g { display: grid; gap: .3rem; padding: .35rem 0; } .seed-find__l { font: 700 11px ui-monospace, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--bb-text-3); }
+.seed-find__b { display: flex; flex-wrap: wrap; gap: .4rem; } .seed-find__b .bb-btn { text-decoration: none; }

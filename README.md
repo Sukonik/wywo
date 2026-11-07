@@ -9,7 +9,7 @@ Built for office staff, municipal staff, and anyone who transfers calls.
 
 Powered by **Bluebird UI** — a tiny, themeable design system with 8 bird themes.
 
-[![Version](https://img.shields.io/badge/version-0.11.0-2563c9)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.12.0-2563c9)](CHANGELOG.md)
 [![Publish](https://github.com/Sukonik/wywo/actions/workflows/pages.yml/badge.svg)](https://github.com/Sukonik/wywo/actions/workflows/pages.yml)
 [![License](https://img.shields.io/github/license/Sukonik/wywo)](LICENSE)
 
@@ -159,6 +159,8 @@ Every new version is shipped automatically:
 
 ## 🐦 Bird Seed
 
+> 🔎 **Look it up yourself** (v0.12): one-tap Google, LinkedIn, Facebook, X, Google Maps, OpenCorporates and BBB searches for the caller, company, phone and email. ⚡ **Send to Zapier** posts the note to your own Catch Hook. Neither needs a key.
+
 **Bird Seed finds missing or relevant information for a call, shows you what it found and where it came from, and asks before adding anything.** Nothing goes into the note unless you tick it.
 
 **How to use it:** press **🐦 Bird Seed** → tick the seeds you want (or **🌰 Select all**) → **🌱 Scatter seeds** → review → **Add**. Ticked items land in the right place: a field, *Additional notes*, or *References*, so they print with the note.
@@ -294,7 +296,7 @@ Built phone-first, with the same features as desktop:
 
 How the site has grown: ten releases so far. Each screenshot is the real site at that version, with the example note loaded. Full details in the [Changelog](CHANGELOG.md).
 
-Current version: **0.11.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.11.0 · build a1b2c3d`).
+Current version: **0.12.0**. Every merge to `main` publishes automatically, and the footer shows the build hash of what you’re running (`v0.12.0 · build a1b2c3d`).
 
 | | Version | What changed |
 |---|---|---|
