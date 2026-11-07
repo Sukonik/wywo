@@ -331,3 +331,27 @@ test('🔁 a dropped connection is retried once by the look-up engine too', asyn
   const res = await BirdSeed.scatter(['corn'], { state: emptyState({ company: 'Acme' }), saved: [], fetch: f, retryDelay: 0, engine: { id: 'reader', keys: {} } });
   assert.equal(n, 2); assert.equal(res[0].suggestions[0].apply.title, 'Acme');
 });
+
+/* ---------- search links + Zapier ---------- */
+test('🔎 search links: Google, LinkedIn and Facebook for the person and company, phone and email; nothing when the note is empty', () => {
+  const l = BirdSeed.searchLinks({ caller: 'Phil Gordon', company: 'SWA Development Corp', phone: '5167879090', alt: 'pgordon@swadevelopment.co' });
+  const by = (g, n) => l.find(x => x.group === g && x.label === n);
+  assert.equal(by('Person', 'Google').url, 'https://www.google.com/search?q=%22Phil%20Gordon%22%20%22SWA%20Development%20Corp%22');
+  assert.equal(by('Person', 'LinkedIn').url, 'https://www.linkedin.com/search/results/people/?keywords=Phil%20Gordon%20SWA%20Development%20Corp');
+  assert.equal(by('Person', 'Facebook').url, 'https://www.facebook.com/search/people/?q=Phil%20Gordon');
+  assert.equal(by('Company', 'LinkedIn').url, 'https://www.linkedin.com/search/results/companies/?keywords=SWA%20Development%20Corp');
+  assert.equal(by('Company', 'Facebook').url, 'https://www.facebook.com/search/pages/?q=SWA%20Development%20Corp');
+  assert.match(by('Company', 'Google Maps').url, /maps\/search\/\?api=1&query=SWA%20Development%20Corp/); assert.match(by('Company', 'OpenCorporates').url, /opencorporates\.com\/companies\?q=/);
+  assert.match(decodeURIComponent(by('Phone', 'Google this number').url), /"516-787-9090"/); assert.match(decodeURIComponent(by('Email', 'Google this email').url), /"pgordon@swadevelopment\.co"/);
+  assert.ok(l.every(x => /^https:\/\//.test(x.url)), 'every link is https');
+  assert.deepEqual(BirdSeed.searchLinks({}), []); assert.deepEqual(BirdSeed.searchLinks({ company: 'Acme' }).map(x => x.group), ['Company', 'Company', 'Company', 'Company', 'Company', 'Company']);
+  assert.equal(BirdSeed.searchLinks({ caller: 'A B & C?' })[0].url.includes('&C?'), false, 'special characters are escaped');
+});
+test('⚡ Zapier: payload carries the note; only a real Catch Hook URL is accepted; sends once with the right body', async () => {
+  const st = { caller: 'Phil Gordon', company: 'SWA', phone: '516-787-9090', reason: 'Zoning', forWho: '', refs: [{ title: 'Site', url: 'https://swa.co' }], methods: ['Telephoned', 'Email'] };
+  const p = BirdSeed.zapPayload(st); assert.equal(p.call_for, 'Check with team'); assert.equal(p.caller, 'Phil Gordon'); assert.equal(p.methods, 'Telephoned, Email'); assert.match(p.references, /Site \(https:\/\/swa\.co\)/);
+  for (const bad of ['', 'http://hooks.zapier.com/hooks/catch/1/a/', 'https://evil.com/hooks/catch/1/a/', 'https://hooks.zapier.com/hooks/catch/x/a/']) await assert.rejects(BirdSeed.sendZap(bad, st, async () => { throw new Error('must not be called'); }), /Catch Hook/);
+  const calls = []; const r = await BirdSeed.sendZap('https://hooks.zapier.com/hooks/catch/123456/abcDEF/', st, async (u, o) => { calls.push([u, o]); return {}; });
+  assert.equal(r.sent, true); assert.equal(calls.length, 1); assert.equal(calls[0][1].method, 'POST'); assert.equal(calls[0][1].mode, 'no-cors'); assert.equal(JSON.parse(calls[0][1].body).company, 'SWA');
+  await assert.rejects(BirdSeed.sendZap('https://hooks.zapier.com/hooks/catch/1/a/', st, async () => { throw new TypeError('x'); }), /Couldn’t reach Zapier/);
+});

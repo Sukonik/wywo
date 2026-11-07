@@ -454,13 +454,28 @@
     $('#scatterBtn').hidden = n !== 1; $('#seedAdd').hidden = n !== 2; $('#seedBack').hidden = n !== 2;
     $('#seedSub').textContent = n === 1 ? '' : 'Here’s what we found. Tick what you want added to the note. Guesses are never ticked for you.'; $('#seedSub').hidden = n === 1;
   }
+  var GROUP_ICON = { Person: '🧑', Company: '🏢', Phone: '📞', Email: '✉️' };
+  function renderFind() {
+    readForm(); var l = BirdSeed.searchLinks(Object.assign({}, state, { city: ($('#city').value || '').trim() })), el = $('#seedFind');
+    if (!l.length) { el.innerHTML = '<p class="bb-hint">Add a caller or company to the note and search shortcuts appear here.</p>'; return; }
+    var groups = {}; l.forEach(function (x) { (groups[x.group] = groups[x.group] || []).push(x); });
+    el.innerHTML = Object.keys(groups).map(function (g) { return '<div class="seed-find__g"><span class="seed-find__l">' + GROUP_ICON[g] + ' ' + g + '</span><div class="seed-find__b">' + groups[g].map(function (x) { return '<a class="bb-btn bb-btn--sm" target="_blank" rel="noopener noreferrer" href="' + esc(x.url) + '" title="' + esc(x.why) + '">' + x.icon + ' ' + esc(x.label) + ' ↗</a>'; }).join('') + '</div></div>'; }).join('');
+  }
+  $('#zapUrl').value = KEYS.zap || '';
+  $('#zapUrl').addEventListener('input', function () { KEYS.zap = this.value.trim(); store('wywo.keys', KEYS); $('#zapState').textContent = KEYS.zap ? 'saved on this device' : 'optional'; });
+  $('#zapState').textContent = KEYS.zap ? 'saved on this device' : 'optional';
+  $('#zapSend').addEventListener('click', function () {
+    readForm(); var m = $('#zapMsg'); m.textContent = 'Sending…';
+    BirdSeed.sendZap(KEYS.zap, state).then(function () { m.textContent = '✓ Handed to Zapier. Check your Zap’s history to confirm it ran.'; }, function (e) { m.textContent = '⚠️ ' + e.message; });
+  });
   function openSeed() {
-    readForm(); seedStep(1);
+    readForm(); seedStep(1); renderFind();
     var site = (state.refs || []).map(function (r) { return r.url || ''; }).filter(function (u) { return /^https?:\/\//i.test(u) && !/(linkedin|facebook|instagram|twitter|x\.com|youtube|google|wikipedia|longbeachny\.gov)/i.test(u); })[0];
     if (site && !$('#seedSite').value) $('#seedSite').value = site; if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
   function closeSeed() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
   $('#birdBtn').addEventListener('click', openSeed);
   $('#seedClose').addEventListener('click', closeSeed);
+  $('#city').addEventListener('input', renderFind);
   $('#seedBack').addEventListener('click', function () { seedStep(1); });
   dlg.addEventListener('click', function (e) { if (e.target === dlg) closeSeed(); });
 

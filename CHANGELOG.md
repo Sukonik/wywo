@@ -2,6 +2,12 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.12.0] — 2026-11-07 🔎
+### Added: Bird Seed finds people and companies faster
+- 🔎 **Look it up yourself:** one-tap searches for the caller and company on **Google, LinkedIn, Facebook, X, Google Maps, OpenCorporates and the Better Business Bureau**, plus Google searches for the phone number and email. They open each site's own search in a new tab; WYWO sends nothing.
+- ⚡ **Send to Zapier:** paste a Zapier *Catch Hook* URL and send the note's fields to your own Zap (CRM, sheet, Slack). Only runs when you press the button.
+- 🧪 96 tests.
+
 ## [0.11.0] — 2026-11-07 🧭
 ### Changed: Bird Watch looks and reads like Ride Weather
 - 🔢 Numbered cards with mono-spaced headers (B-01…B-07) and mono labels on the tiles

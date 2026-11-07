@@ -233,6 +233,12 @@
         <p class="bb-hint" id="engineNote"></p>
       </div>
     </details>
+    <section class="seed-find" aria-label="Look it up yourself"><h3 class="seed-find__h">🔎 Look it up yourself <em>opens each site’s own search in a new tab; nothing from your note is sent by WYWO</em></h3><div id="seedFind"></div></section>
+    <details class="more" id="zapBox"><summary>⚡ Send this note to Zapier <em id="zapState">optional</em></summary><div class="more__in">
+      <label class="f"><span>Zapier Catch Hook URL <em>from a Zap that starts with “Webhooks by Zapier → Catch Hook”</em></span><input id="zapUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://hooks.zapier.com/hooks/catch/123456/abcdef/"></label>
+      <p class="bb-hint">Pressing the button sends this note’s fields (caller, company, phone, reason and so on) to <b>your</b> Zap so it can add them to a CRM, sheet or Slack. Nothing is sent until you press it.</p>
+      <button class="bb-btn bb-btn--sm" type="button" id="zapSend">⚡ Send note to my Zap</button> <span class="bb-hint" id="zapMsg" role="status" aria-live="polite"></span>
+    </div></details>
     <label class="f"><span>Company website <em>optional · paste it when the company name alone isn’t enough</em></span><input id="seedSite" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com"></label>
     <label class="f"><span>City for local departments <em>Long Beach, NY has a verified directory</em></span><input id="city" placeholder="Long Beach, NY"></label>
     <div class="seed__tools">
@@ -264,7 +270,7 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 
-<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.11.0 · build <span id="build">dev</span></footer>
+<footer><svg class="foot__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg> WYWO · Built with <strong>Bluebird UI</strong> · 🔒 Notes stay in your browser · v0.12.0 · build <span id="build">dev</span></footer>
 <nav class="mnav" aria-label="Switch between editing and preview">
   <button type="button" data-pane="edit" aria-pressed="true"><span aria-hidden="true">✏️</span>Edit</button>
   <button type="button" data-pane="preview" aria-pressed="false"><span aria-hidden="true">👁</span>Preview</button>
