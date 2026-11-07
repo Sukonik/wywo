@@ -90,16 +90,24 @@
   }
 
   /* ---------------- network ---------------- */
-  function req(ctx, url, opts, mode, ms) {
+  function reqOnce(ctx, url, opts, mode, ms) {
     var f = ctx.fetch || (root.fetch && root.fetch.bind(root)); if (!f) return Promise.reject(new Error('no network'));
     opts = opts || {};
     var ac = typeof AbortController !== 'undefined' ? new AbortController() : null, t = ac && setTimeout(function () { ac.abort(); }, ms || 15000);
     if (ac) opts.signal = ac.signal;
     return f(url, opts).then(function (r) {
       if (t) clearTimeout(t);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) { var he = new Error('HTTP ' + r.status); he.status = r.status; throw he; }
       return mode === 'text' ? r.text() : r.json();
     }, function (e) { if (t) clearTimeout(t); throw e; });
+  }
+  // Free services rate-limit now and then (HTTP 429/503): wait a moment and try once more.
+  function req(ctx, url, opts, mode, ms) {
+    opts = opts || {};
+    return reqOnce(ctx, url, Object.assign({}, opts), mode, ms).catch(function (e) {
+      if (e && (e.status === 429 || e.status === 503)) return new Promise(function (ok) { setTimeout(ok, ctx.retryDelay == null ? 1500 : ctx.retryDelay); }).then(function () { return reqOnce(ctx, url, Object.assign({}, opts), mode, ms); });
+      throw e;
+    });
   }
   function dns(ctx, name, type) {
     return req(ctx, 'https://dns.google/resolve?name=' + encodeURIComponent(name) + '&type=' + type, {}, 'json', 7000).then(function (j) { return j.Answer || []; }, function () { return null; });
@@ -214,6 +222,8 @@
   function domains(ctx) {
     if (ctx._dom) return ctx._dom;
     var s = ctx.state, known = [], cand = [];
+    var w = String(ctx.website || '').trim().replace(/^(?!https?:\/\/)/i, 'https://');
+    if (/^https?:\/\/[a-z0-9][a-z0-9.-]*\.[a-z]{2,}/i.test(w)) known.push(w.replace(/^(https?:\/\/[^\/?#]+).*$/i, '$1').toLowerCase());
     var e = emailIn(s.alt); if (e && !FREE.test(e.split('@')[1])) known.push('https://' + e.split('@')[1].toLowerCase());
     (s.refs || []).forEach(function (r) { var u = String(r.url || ''); if (/^https?:\/\//i.test(u) && !/(linkedin|facebook|google|wikipedia|instagram|twitter|x\.com|youtube|longbeachny\.gov)/i.test(u)) known.push(u.replace(/^(https?:\/\/[^\/?#]+).*$/i, '$1')); });
     known = uniq(known);
@@ -319,7 +329,7 @@
         if (!hq) return done('');
         return req(ctx, api + 'action=wbgetentities&props=labels&languages=en&ids=' + hq, {}, 'json', 9000).then(function (h) { return done(((((h.entities || {})[hq] || {}).labels || {}).en || {}).value); }, function () { return done(''); });
       });
-    }).catch(function () { return { suggestions: [], message: 'Couldn’t reach Wikidata (offline?).' }; });
+    }).catch(function (e) { return { suggestions: [], message: e && e.status === 429 ? 'Wikidata is busy right now (too many requests). Try again in a minute.' : 'Couldn’t reach Wikidata (offline?).' }; });
   };
 
   // 🎃 Phone data
@@ -479,6 +489,48 @@
     }));
   }
 
-  root.BirdSeed = { SEEDS: SEEDS, ENGINES: ENGINES, scatter: scatter, _t: { cleanName: cleanName, analyse: analyse, parseHtml: parseHtml, parseMarkdown: parseMarkdown, fromStructured: fromStructured, ENGINE: ENGINE, slugVariants: slugVariants, previous: previous } };
+  // Apply one suggestion's `apply` instruction to a note state. Returns 1 if the note changed, else 0 (already there / not applicable).
+  function applySuggestion(state, a) {
+    var cur;
+    if (!a) return 0;
+    if (a.kind === 'field') {
+      cur = state[a.field] || '';
+      if (a.mode === 'ifEmpty' && cur) return 0;
+      if (a.mode === 'append') { if (cur.toLowerCase().indexOf(String(a.value).toLowerCase()) > -1) return 0; state[a.field] = cur ? cur + ' · ' + a.value : a.value; return 1; }
+      if (cur === a.value) return 0; state[a.field] = a.value; return 1;
+    }
+    if (a.kind === 'ref') {
+      state.refs = state.refs || [];
+      if (state.refs.some(function (r) { return (a.url && r.url === a.url) || (a.title && r.title === a.title); })) return 0;
+      state.refs.push({ title: a.title, detail: a.detail || '', url: a.url || '' }); return 1;
+    }
+    if (a.kind === 'extra') {
+      if (!a.text) return 0;
+      if ((state.extra || '').indexOf(a.text) > -1) return 0;
+      state.extra = (state.extra ? state.extra + '\n' : '') + a.text; return 1;
+    }
+    return 0;
+  }
+
+  // A real call about a real public organisation, so every seed has something true to find.
+  var DEMO = { caller: 'sam ortiz', company: 'City of Long Beach', phone: '516-431-1000', alt: 'sortiz@longbeachny.gov', reason: 'Sam called about opening a new shop on West Park Avenue.', topics: 'Building permits\nMercantile license', forWho: 'Law Staff' };
+
+  // Probes each service Bird Seed depends on, right now, from this browser. -> [{ id, name, ok, ms, detail }]
+  function selfCheck(ctx) {
+    ctx = ctx || {}; ctx.engine = ctx.engine || { id: 'reader', keys: {} }; ctx.engine.keys = ctx.engine.keys || {};
+    var probes = [
+      ['dns', 'Domain lookups (DNS)', function () { return dns(ctx, 'example.com', 'A').then(function (a) { if (a === null) throw new Error('unreachable'); return a.length ? 'resolves example.com' : 'reachable'; }); }],
+      ['reader', 'Website reader (' + ((ENGINES.filter(function (x) { return x.id === ctx.engine.id; })[0] || ENGINES[0]).name.replace(' (free, no key)', '')) + ')', function () { return fetchPage(ctx, 'https://example.com').then(function (raw) { var f = pageFacts(raw, 'https://example.com'); if (!(f.title || f.headings.length || f.description || (raw.structured))) throw new Error('read the page but found nothing'); return 'read example.com: “' + clip(f.title || f.headings[0] || 'ok', 40) + '”'; }); }],
+      ['wikidata', 'Company profiles (Wikidata)', function () { return req(ctx, 'https://www.wikidata.org/w/api.php?format=json&origin=*&action=wbsearchentities&language=en&limit=1&search=Wikipedia', {}, 'json', 9000).then(function (j) { if (!(j.search || []).length) throw new Error('no answer'); return 'found “' + j.search[0].label + '”'; }); }],
+      ['osm', 'Address check (OpenStreetMap)', function () { return req(ctx, 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent('1 West Chester Street Long Beach NY 11561'), {}, 'json', 9000).then(function (j) { if (!j.length) throw new Error('no answer'); return 'placed an address on the map'; }); }]
+    ];
+    return Promise.all(probes.map(function (p) {
+      var t0 = Date.now();
+      return Promise.resolve().then(p[2]).then(function (d) { return { id: p[0], name: p[1], ok: true, ms: Date.now() - t0, detail: d }; },
+        function (e) { return { id: p[0], name: p[1], ok: false, ms: Date.now() - t0, detail: e && e.status === 429 ? 'busy (rate limited), try again in a minute' : (e && e.message) || 'failed' }; });
+    }));
+  }
+
+  root.BirdSeed = { DEMO: DEMO, selfCheck: selfCheck, apply: applySuggestion, SEEDS: SEEDS, ENGINES: ENGINES, scatter: scatter, _t: { cleanName: cleanName, analyse: analyse, parseHtml: parseHtml, parseMarkdown: parseMarkdown, fromStructured: fromStructured, ENGINE: ENGINE, slugVariants: slugVariants, previous: previous } };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.BirdSeed;
 })(typeof window !== 'undefined' ? window : globalThis);

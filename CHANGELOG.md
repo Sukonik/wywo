@@ -2,6 +2,20 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.10.0] — 2026-11-07 🌲
+### Changed: Bird Watch 2.0 (no more embedded pages)
+- 🎯 Rebuilt as a **full-screen, forest-themed weather view** in the spirit of the Bike Club’s Ride Weather: a **Watch score** gauge (the bluebird rides the arc), verdict and **best daylight window**
+- Sections **Now · Rain · UV · Tides · AQI**, each with its own native charts: tiles with segment bars, a wind compass where the **bluebird flies with the wind**, 24 h chart, rain bars + nowcast, UV curve + burn time, **NOAA tide curve** with night shading, **AQI** scale and pollutants
+- Removed the ClearSky iframes (ClearSky stays linked in the footer); tide data now from **NOAA CO-OPS**, air quality from Open-Meteo
+### Added: Bird Seed you can trust
+- ✅ **Automated test suite** (`npm test`, 90 tests, plus opt-in live-internet tests `npm run test:live`) covering every seed, all engines, Quick type and Bird Watch; verified able to fail; GitHub Actions runs it on every push
+- 🩺 **Check tools** (live self-test of each service), ▶ **Try the real demo** (a real public organisation) and a 🌐 **Company website** box; clearer “nothing found” guidance; Wikidata/OSM rate limits are retried and explained
+### Fixed
+- ⚡ Quick type: lost caller after a leading `ASAP:` / `Message for X:`, junk fragments like “or cell”, “wants Dana to call back” routing, “Sam at the city clerk” organisations
+- 🌊 Tide height rounding; tide station radius (Newark no longer gets Long Beach’s station)
+### Internal
+- Quick type and Bird Seed “apply to note” moved into testable modules; `package.json`, `tests/`
+
 ## [0.9.0] — 2026-11-06 🌤
 ### Added: Bird Watch
 - 🌤 **Weather chip** in the header (icon + temperature) and a **Weather** button in the phone bar open the **Bird Watch panel**: current conditions, next 24 hours, 7 days, place picker (Long Beach area, any city search, or 📍 my location), °F / °C

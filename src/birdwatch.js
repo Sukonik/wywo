@@ -194,6 +194,122 @@
     return out;
   }
 
-  root.BirdWatch = { PLACES: PLACES, load: load, at: at, search: search, describe: describe, emoji: emoji, tone: tone, dirName: dirName, T: T, TU: TU, S: S, SU: SU, time12: time12, daypart: daypart, season: season, holidayNear: holidayNear, whenLabel: whenLabel, conditions: conditions, ymd: ymd };
+  /* ================= Watch score, best window, rain, UV, AQI ================= */
+  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+  // 0-100 "how good is it to be outside watching birds / walking". Inputs: °F, mph, %, inches, UV index.
+  function watchScore(p) {
+    var s = 100;
+    s -= Math.max(0, p.wind - 8) * 2.2;
+    s -= Math.max(0, (p.gust || p.wind) - 20) * 1.0;
+    var f = p.feels != null ? p.feels : p.temp;
+    if (f < 45) s -= (45 - f) * 1.5; else if (f > 80) s -= (f - 80) * 2.2;
+    s -= (p.pop || 0) * 0.3;
+    if (p.precip > 0.01) s -= 18 + Math.min(p.precip * 40, 25);
+    if (p.uv > 8) s -= (p.uv - 8) * 2;
+    if (p.day === false) s -= 14;
+    s = clamp(Math.round(s), 0, 100);
+    var tone = s >= 80 ? 'prime' : s >= 60 ? 'good' : s >= 40 ? 'fair' : 'stay';
+    return { score: s, tone: tone, label: { prime: 'Prime', good: 'Good', fair: 'Fair', stay: 'Stay in' }[tone] };
+  }
+  function verdict(tone) { return { prime: 'Lovely out. A great time to be outside.', good: 'Good conditions. Mind the wind.', fair: 'Fine if you dress for it.', stay: 'Better kept indoors for now.' }[tone]; }
+  // best two-hour DAYLIGHT stretch in the next 24 hours -> { i, avg } (index of the first hour)
+  function bestWindow(hours) {
+    var best = null;
+    for (var i = 0; i < hours.length - 1; i++) {
+      var a = hours[i], b = hours[i + 1]; if (!a.day || !b.day) continue;
+      var avg = (watchScore(a).score + watchScore(b).score) / 2;
+      if (!best || avg > best.avg) best = { i: i, avg: Math.round(avg) };
+    }
+    return best;
+  }
+  // Plain-language rain summary from the next hours (+ optional 15-minute nowcast)
+  function rainOutlook(hours, minutely, u) {
+    u = units(u); var total = 0, peak = 0, first = -1, last = -1, i;
+    for (i = 0; i < hours.length; i++) {
+      total += hours[i].precip || 0; peak = Math.max(peak, hours[i].pop || 0);
+      if ((hours[i].pop >= 50 || hours[i].precip > 0.01)) { if (first < 0) first = i; last = i; }
+    }
+    var unit = u === 'metric' ? 'mm' : 'in', amt = u === 'metric' ? +(total * 25.4).toFixed(1) : +total.toFixed(2);
+    var headline;
+    if (first < 0) headline = 'Dry for the next ' + hours.length + ' hours';
+    else if (first === 0 && hours[0].precip > 0.01) headline = 'Raining now' + (last < hours.length - 1 ? ', easing around ' + time12(hours[last + 1].time.slice(11, 16)) : ', likely to continue');
+    else headline = 'Rain likely from ' + time12(hours[first].time.slice(11, 16)) + (amt ? ', about ' + amt + ' ' + unit : '');
+    var now = null;
+    if (minutely && minutely.length) {
+      var wet = minutely.findIndex(function (v) { return v > 0.004; });
+      now = wet === -1 ? 'No rain in the next ' + (minutely.length * 15 >= 60 ? Math.round(minutely.length / 4) + ' hours' : minutely.length * 15 + ' minutes') : (wet === 0 ? 'Rain right now' : 'Rain starts in about ' + wet * 15 + ' minutes');
+    }
+    return { total: total, amount: amt, unit: unit, peak: peak, headline: headline, nowcast: now, firstWet: first };
+  }
+  var UV_LEVELS = [[3, 'Low', '#2e9d5b', 'No protection needed for most people.'], [6, 'Moderate', '#d4b106', 'Wear sunglasses; sunscreen if outside for long.'], [8, 'High', '#e8891d', 'Sunscreen, hat and shade at midday.'], [11, 'Very high', '#d64545', 'Extra protection; avoid the midday sun.'], [99, 'Extreme', '#8e44ad', 'Stay in the shade; unprotected skin burns fast.']];
+  function uvInfo(uv) {
+    var v = Math.max(0, uv || 0), lv = UV_LEVELS.filter(function (l) { return v < l[0]; })[0] || UV_LEVELS[4];
+    return { value: Math.round(v * 10) / 10, level: lv[1], color: lv[2], advice: lv[3], burnMin: v < 1 ? null : Math.round(200 / (3 * v) / 5) * 5 || 5 };
+  }
+  var AQI_LEVELS = [[50, 'Good', '#2e9d5b', 'Air quality is great. Enjoy the outdoors.'], [100, 'Moderate', '#d4b106', 'Fine for most; unusually sensitive people may notice.'], [150, 'Unhealthy for sensitive groups', '#e8891d', 'Children, older adults and people with asthma should take it easy outside.'], [200, 'Unhealthy', '#d64545', 'Everyone should limit long or heavy outdoor activity.'], [300, 'Very unhealthy', '#8e44ad', 'Avoid outdoor activity; keep windows closed.'], [999, 'Hazardous', '#7e0023', 'Stay indoors and avoid physical activity.']];
+  function aqiInfo(aqi) {
+    var v = Math.max(0, Math.round(aqi || 0)), lv = AQI_LEVELS.filter(function (l) { return v <= l[0]; })[0] || AQI_LEVELS[5];
+    return { value: v, level: lv[1], color: lv[2], advice: lv[3], pct: clamp(v / 300, 0, 1) };
+  }
+  function loadAir(place, fetchFn) {
+    var url = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + place.lat + '&longitude=' + place.lon +
+      '&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi&hourly=us_aqi&timezone=auto&forecast_days=2';
+    return getJson(url, 10000, fetchFn).then(function (raw) {
+      var c = raw.current; if (!c || c.us_aqi == null) throw new Error('Air quality isn’t available for this place');
+      var h = raw.hourly || { time: [], us_aqi: [] }, key = (c.time || '').slice(0, 13), idx = Math.max(0, h.time.findIndex(function (t) { return t.slice(0, 13) === key; })), hours = [];
+      for (var i = idx; i < Math.min(idx + 24, h.time.length); i++) hours.push({ time: h.time[i], aqi: h.us_aqi[i] });
+      return { place: place, now: { aqi: c.us_aqi, eaqi: c.european_aqi, pm25: c.pm2_5, pm10: c.pm10, o3: c.ozone, no2: c.nitrogen_dioxide, so2: c.sulphur_dioxide, co: c.carbon_monoxide }, hours: hours, localTime: c.time };
+    });
+  }
+  function loadNowcast(place, fetchFn) {
+    return getJson('https://api.open-meteo.com/v1/forecast?latitude=' + place.lat + '&longitude=' + place.lon + '&minutely_15=precipitation&forecast_minutely_15=8&timezone=auto', 8000, fetchFn)
+      .then(function (raw) { return (raw.minutely_15 && raw.minutely_15.precipitation) || []; }, function () { return []; });
+  }
+
+  /* ================= Tides (NOAA CO-OPS — the same source ClearSky uses) ================= */
+  var NOAA = 'https://api.tidesandcurrents.noaa.gov', LB_STATION = { id: '8516663', name: 'Long Beach, NY', lat: 40.5883, lon: -73.6583 };
+  function km(a, b, c, d) { var R = 6371, r = Math.PI / 180, dLat = (c - a) * r, dLon = (d - b) * r, x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
+  function tideStation(place, fetchFn) {
+    var d = km(place.lat, place.lon, LB_STATION.lat, LB_STATION.lon);
+    if (d <= 25) return Promise.resolve({ id: LB_STATION.id, name: LB_STATION.name, distKm: Math.round(d) });
+    return getJson(NOAA + '/mdapi/prod/webapi/stations.json?type=tidepredictions&units=english', 20000, fetchFn).then(function (j) {
+      var best = null; (j.stations || []).forEach(function (st) { if (st.lat == null) return; var dd = km(place.lat, place.lon, st.lat, st.lng); if (!best || dd < best.distKm) best = { id: st.id, name: st.name + (st.state ? ', ' + st.state : ''), distKm: Math.round(dd) }; });
+      if (!best || best.distKm > 150) throw new Error('No tide station within 150 km of ' + place.name);
+      return best;
+    });
+  }
+  function noaaTime(t) { var m = String(t).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : NaN; }   // naive station-local minutes, as epoch ms
+  function loadTides(place, fetchFn) {
+    return tideStation(place, fetchFn).then(function (st) {
+      var y = new Date(Date.now() - 864e5), begin = y.getFullYear() + pad(y.getMonth() + 1) + pad(y.getDate());
+      var url = NOAA + '/api/prod/datagetter?station=' + st.id + '&product=predictions&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=' + begin + '&range=96';
+      return getJson(url, 15000, fetchFn).then(function (raw) {
+        if (!raw.predictions || !raw.predictions.length) throw new Error((raw.error && raw.error.message) || 'No tide predictions for this station');
+        return { station: st, events: raw.predictions.map(function (p) { return { t: p.t, ms: noaaTime(p.t), type: p.type, ft: +p.v }; }) };
+      });
+    });
+  }
+  // smooth tide height between high/low events (cosine interpolation is how tide tables are usually drawn)
+  function tideAt(events, ms) {
+    for (var i = 0; i < events.length - 1; i++) {
+      var a = events[i], b = events[i + 1];
+      if (ms >= a.ms && ms <= b.ms) { var f = (ms - a.ms) / (b.ms - a.ms); return Math.round((a.ft + (b.ft - a.ft) * (1 - Math.cos(Math.PI * f)) / 2) * 1000) / 1000; }
+    }
+    return null;
+  }
+  function tideCurve(events, fromMs, toMs, stepMin) {
+    var out = [], step = (stepMin || 30) * 6e4; for (var t = fromMs; t <= toMs; t += step) { var h = tideAt(events, t); if (h != null) out.push({ ms: t, ft: h }); } return out;
+  }
+  function tideNow(events, nowMs) {
+    var prev = null, next = null;
+    for (var i = 0; i < events.length; i++) { if (events[i].ms <= nowMs) prev = events[i]; else { next = events[i]; break; } }
+    if (!prev || !next) return null;
+    return { prev: prev, next: next, rising: next.type === 'H', ft: tideAt(events, nowMs), frac: (nowMs - prev.ms) / (next.ms - prev.ms), minToNext: Math.round((next.ms - nowMs) / 6e4) };
+  }
+  function ftToUnit(ft, u) { return u === 'metric' ? +(ft * 0.3048).toFixed(2) : +(+ft).toFixed(1); }
+  function lenUnit(u) { return u === 'metric' ? 'm' : 'ft'; }
+
+  root.BirdWatch = { watchScore: watchScore, verdict: verdict, bestWindow: bestWindow, rainOutlook: rainOutlook, uvInfo: uvInfo, aqiInfo: aqiInfo, loadAir: loadAir, loadNowcast: loadNowcast,
+    tideStation: tideStation, loadTides: loadTides, tideAt: tideAt, tideCurve: tideCurve, tideNow: tideNow, noaaTime: noaaTime, ftToUnit: ftToUnit, lenUnit: lenUnit, km: km, UV_LEVELS: UV_LEVELS, AQI_LEVELS: AQI_LEVELS, PLACES: PLACES, load: load, at: at, search: search, describe: describe, emoji: emoji, tone: tone, dirName: dirName, T: T, TU: TU, S: S, SU: SU, time12: time12, daypart: daypart, season: season, holidayNear: holidayNear, whenLabel: whenLabel, conditions: conditions, ymd: ymd };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.BirdWatch;
 })(typeof window !== 'undefined' ? window : globalThis);
