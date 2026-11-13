@@ -55,10 +55,13 @@
   /* ---------------- State ---------------- */
   var form = $('#form'), pane = $('#pane');
   var state = Object.assign(blank(), load(KEY_DRAFT, {}));
+  if (!Array.isArray(state.follow)) state.follow = [];
+  // A note nobody has hand-dated always shows *now*: a stale draft from yesterday must not keep yesterday's date.
+  if (state.autoStamp !== false) { state.autoStamp = true; state.date = today(); state.time = nowTime(); }
   var view = 'modern';
 
   function blank() {
-    return { forWho: '', urgent: false, date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', extra: '', refs: [], signed: '', wx: null, tagsOn: { when: true, season: true, weather: true, sun: false, holiday: true } };
+    return { forWho: '', urgent: false, autoStamp: true, follow: [], date: today(), time: nowTime(), caller: '', company: '', phone: '', alt: '', methods: ['Telephoned'], reason: '', topics: '', action: '', extra: '', refs: [], signed: '', wx: null, tagsOn: { when: true, season: true, weather: true, sun: false, holiday: true } };
   }
 
   /* ---------------- Theme UI ---------------- */
@@ -157,7 +160,7 @@
       if (el.type === 'checkbox') el.checked = !!state[el.name]; else el.value = state[el.name] || '';
     });
     Array.prototype.forEach.call(methodsEl.querySelectorAll('input'), function (i) { i.checked = state.methods.indexOf(i.value) > -1; });
-    renderRefs();
+    renderRefs(); renderFollow();
     normTags(); syncBw(); scheduleTagIfStale();
   }
 
@@ -167,10 +170,30 @@
       state[el.name] = el.type === 'checkbox' ? el.checked : el.value;
     });
     state.methods = Array.prototype.map.call(methodsEl.querySelectorAll('input:checked'), function (i) { return i.value; });
+    state.follow = Array.prototype.map.call(document.querySelectorAll('.fu-item'), function (r) { return { date: $('[data-f=date]', r).value, time: $('[data-f=time]', r).value, note: $('[data-f=note]', r).value }; });
     state.refs = Array.prototype.map.call(document.querySelectorAll('.ref-item'), function (r) {
       return { title: $('[data-f=title]', r).value, detail: $('[data-f=detail]', r).value, url: $('[data-f=url]', r).value };
     });
   }
+
+  /* ---- date follow-ups: a second date marker that never touches the note's original date ---- */
+  function renderFollow() {
+    var box = $('#follows'); box.innerHTML = '';
+    (state.follow || []).forEach(function (f, i) {
+      var d = document.createElement('div'); d.className = 'fu-item';
+      d.innerHTML = '<span class="fu-item__l">Follow-up</span><input class="bb-input" type="date" data-f="date" value="' + esc(f.date) + '" aria-label="Follow-up date"><input class="bb-input" type="time" data-f="time" value="' + esc(f.time) + '" aria-label="Follow-up time">' +
+        '<input class="bb-input fu-item__n" data-f="note" placeholder="What happened? (e.g. Called back, left voicemail)" value="' + esc(f.note || '') + '"><button type="button" class="bb-btn bb-btn--icon bb-btn--ghost bb-btn--danger" data-fu-rm="' + i + '" aria-label="Remove follow-up">✕</button>';
+      box.appendChild(d);
+    });
+  }
+  function followText(s) { return (s.follow || []).filter(function (f) { return f.date || f.time || f.note; }).map(function (f) { var w = fmtDate(f.date, f.time); return (w || 'Follow-up') + (f.note ? (w ? ' — ' : '') + f.note : ''); }); }
+  function stampNow() { if (state.autoStamp === false) return; var d = today(), t = nowTime(); if (state.date === d && state.time === t) return; state.date = d; state.time = t; form.elements.date.value = d; form.elements.time.value = t; update(); }
+  $('#addFollow').addEventListener('click', function () { readForm(); state.follow.push({ date: today(), time: nowTime(), note: '' }); renderFollow(); update(); var all = document.querySelectorAll('.fu-item [data-f=note]'); all[all.length - 1].focus(); });
+  $('#follows').addEventListener('click', function (e) { var b = e.target.closest('[data-fu-rm]'); if (!b) return; readForm(); state.follow.splice(+b.dataset.fuRm, 1); renderFollow(); update(); });
+  $('#stampNow').addEventListener('click', function () { state.autoStamp = true; state.date = ''; state.time = ''; stampNow(); toast('Date and time set to now'); });
+  form.addEventListener('input', function (e) { if (e.target && (e.target.name === 'date' || e.target.name === 'time')) state.autoStamp = false; });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) stampNow(); });
+  window.addEventListener('focus', stampNow);
 
   function renderRefs() {
     var box = $('#refs'); box.innerHTML = '';
@@ -198,7 +221,7 @@
     var h = '<article class="note"><svg class="note__art" viewBox="0 0 320 200" aria-hidden="true"><use class="art-ref" href="#art-' + forest + '"/></svg>';
     h += '<div class="note__top"><div class="note__brand"><svg class="note__mark" viewBox="0 0 512 512" aria-hidden="true"><use href="#wywo-mark"/></svg><div><div class="note__kicker">While You Were Out</div><div class="note__title">Callback request</div></div></div>' +
       '<div class="note__meta">' + (s.urgent ? '<span class="bb-badge bb-badge--danger">URGENT</span><br>' : '') +
-      '<div class="note__for">Call is for <span class="for-badge' + (String(s.forWho || '').trim() ? '' : ' for-badge--team') + '">' + esc(forLabel(s)) + '</span></div>' + esc(fmtDate(s.date, s.time)) + '</div></div>';
+      '<div class="note__for">Call is for <span class="for-badge' + (String(s.forWho || '').trim() ? '' : ' for-badge--team') + '">' + esc(forLabel(s)) + '</span></div>' + esc(fmtDate(s.date, s.time)) + followText(s).map(function (t) { return '<div class="fu-line">Follow-up: ' + esc(t) + '</div>'; }).join('') + '</div></div>';
     h += '<div class="note__caller"><span class="name">' + (s.caller ? esc(s.caller) : '<span class="empty">Caller name</span>') + '</span>' +
       (s.company ? '<span class="company">' + esc(s.company) + '</span>' : '') +
       (s.phone ? (tel ? '<a class="note__phone" href="' + esc(tel) + '">' + esc(s.phone) + '</a>' : '<span class="note__phone">' + esc(s.phone) + '</span>') : '') +
@@ -235,6 +258,7 @@
       '<div class="urgent2"><span class="lbl2">Urgent</span><b>' + (s.urgent ? '✓' : '') + '</b></div>' +
       f('For', forLabel(s)) +
       '<div class="ln"><span class="lbl2">Date</span><span class="hw">' + esc(s.date ? fmtDate(s.date, '') : '') + '</span><span class="lbl2">Time</span><span class="hw" style="flex:.6">' + esc(s.time ? fmtDate('', s.time) : '') + '</span></div>' +
+      followText(s).map(function (t) { return '<div class="ln"><span class="lbl2">Follow-up</span><span class="hw">' + esc(t) + '</span></div>'; }).join('') +
       '<div class="banner">While You Were Out</div>' +
       f('M', s.caller) +
       '<div class="two"><div>' + f('Of', s.company) + f('Phone', s.phone) + f('Cell / Fax', s.alt) + '</div>' +
@@ -249,6 +273,7 @@
     o.push(s.urgent ? 'CALLBACK REQUEST — URGENT' : 'CALLBACK REQUEST', '');
     o.push('CALL IS FOR: ' + forLabel(s));
     if (fmtDate(s.date, s.time)) o.push('DATE: ' + fmtDate(s.date, s.time));
+    followText(s).forEach(function (t) { o.push('FOLLOW-UP: ' + t); });
     if (condLine(s)) o.push('CONDITIONS: ' + condLine(s));
     o.push('');
     o.push('CALLER: ' + s.caller, 'COMPANY: ' + s.company, 'PHONE: ' + s.phone);
@@ -274,6 +299,7 @@
     o.push('# 📞 While You Were Out', '', '## Callback request' + (s.urgent ? ' — **URGENT**' : ''), '');
     o.push('**Call is for:** ' + forLabel(s) + '  ');
     if (fmtDate(s.date, s.time)) o.push('**Date:** ' + fmtDate(s.date, s.time) + '  ');
+    followText(s).forEach(function (t) { o.push('**Follow-up:** ' + t + '  '); });
     if (condLine(s)) o.push('**Conditions:** ' + condLine(s) + '  ');
     o.push('**Caller:** ' + s.caller + '  ', '**Company:** ' + s.company + '  ', '**Phone:** ' + s.phone);
     if (s.alt) o.push('', '**Also:** ' + s.alt);
@@ -352,7 +378,7 @@
     toast('Choose “Save as PDF” as the destination to export');
     setTimeout(function () { window.print(); }, 350);
   });
-  $('#exampleBtn').addEventListener('click', function () { state = JSON.parse(JSON.stringify(EXAMPLE)); writeForm(); update(); toast('Example loaded'); });
+  $('#exampleBtn').addEventListener('click', function () { state = JSON.parse(JSON.stringify(EXAMPLE)); state.autoStamp = true; state.follow = []; state.date = today(); state.time = nowTime(); writeForm(); update(); toast('Example loaded'); });
   var clearDlg = $('#clearDlg');
   $('#clearBtn').addEventListener('click', function () { $('#clearSure').checked = false; $('#clearGo').disabled = true; if (clearDlg.showModal) clearDlg.showModal(); else clearDlg.setAttribute('open', ''); });
   $('#clearSure').addEventListener('change', function () { $('#clearGo').disabled = !this.checked; });
@@ -390,7 +416,7 @@
   });
   $('#saved').addEventListener('click', function (e) {
     var o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]');
-    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); writeForm(); update(); closeDrawer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (o) { state = Object.assign(blank(), JSON.parse(JSON.stringify(saved[+o.dataset.open].data))); state.autoStamp = false; if (!Array.isArray(state.follow)) state.follow = []; writeForm(); toast('Opened. Its original date is kept. Use “Add follow-up date” to log a new one.'); update(); closeDrawer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     if (d) { saved.splice(+d.dataset.del, 1); store(KEY_SAVED, saved); renderSaved(); }
   });
 

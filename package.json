@@ -1,6 +1,6 @@
 {
   "name": "wywo",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "description": "WYWO — While You Were Out. Static site; npm is only used to run the tests.",
   "scripts": {

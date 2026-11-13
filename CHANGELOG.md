@@ -2,6 +2,14 @@
 
 All notable changes to WYWO / Bluebird UI. Versions follow [SemVer](https://semver.org/).
 
+## [0.13.0] — 2026-11-13 🕒
+### Fixed
+- 🕒 **New notes always start at the current date and time.** Before, a draft kept the date from the day it was first opened. Untouched dates now refresh to *now* whenever you open the site or come back to the tab. Once you pick a date by hand it stays yours.
+### Added
+- 📌 **Opening a saved note never changes its original date.**
+- ➕ **Add follow-up date:** log a second date marker (default: now) with a short note such as “Called back, left voicemail”. It prints on the note in every view (Note, Vintage, Text, Markdown).
+- 🕒 **Set to now** button to snap the date and time back to the current moment.
+
 ## [0.12.0] — 2026-11-07 🔎
 ### Added: Bird Seed finds people and companies faster
 - 🔎 **Look it up yourself:** one-tap searches for the caller and company on **Google, LinkedIn, Facebook, X, Google Maps, OpenCorporates and the Better Business Bureau**, plus Google searches for the phone number and email. They open each site's own search in a new tab; WYWO sends nothing.
